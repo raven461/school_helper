@@ -1,0 +1,26 @@
+{
+    "first_step": {
+        "name": "Первый шаг",
+        "desc": "Выполнил первое задание!",
+        "reward_exp": 50.0,
+        "check": "lambda p, h: p.get_user_sucesfull_tasks() >= 1"
+    },
+    "polymath": {
+        "name": "Многоборец",
+        "desc": "Сделал 3 задания по разным предметам.",
+        "reward_exp": 200.0,
+        "check": "lambda p, h: len(set(t[3] for t in h.all_homework if t[5] == 1)) >= 3"
+    },
+    "hard_worker":  {
+        "name": "Трудяга",
+        "desc": "Выполнил 50 заданий.",
+        "reward_exp": 500.0,
+        "check": "lambda p, h: p.get_user_sucesfull_tasks() >= 50"
+    },
+    "paranoidal":{
+        "name": "Обеспокоенный",
+        "desc": "Посмотрел расписание контрольных работ 5 раз",
+        "reward_exp": 40.0,
+        "check": "lambda p, h: p.get_user_sucesfull_tasks() >= 5"
+    }
+}
