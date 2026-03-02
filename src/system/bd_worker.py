@@ -2,6 +2,9 @@ from os import path
 import sqlite3
 import json
 import time
+if not path.exists("../user_information.db"):
+    with open("../user_information.db","w"):#костыльное создание файла
+        pass
 conn = sqlite3.connect('users_information.db', check_same_thread=False)
 
 def init_db():
@@ -55,15 +58,15 @@ class User:
     def update_user_information(self):
         cur = conn.cursor()
         res = cur.execute("SELECT * FROM Users WHERE user_id = ?", (self.user_id,))
-        self.all_user_information = res.fetchone()        
+        self.id,self.name,self.school,self.class_ = res.fetchone()        
     
     def is_user_register(self) -> bool:
-        return self.all_user_information is not None
+        return self.school is not None
 
-    def get_user_name(self): return self.all_user_information[1] if self.is_user_register() else None
-    def get_user_school(self): return self.all_user_information[2] if self.is_user_register() else None
-    def get_user_class(self) -> str : return self.all_user_information[3] if self.is_user_register() else ""
-    def get_user_grade(self) -> int: return int((self.all_user_information[3])[0]) if self.is_user_register() else 0
+    def get_user_name(self): return self.name if self.is_user_register() else None
+    def get_user_school(self): return self.school if self.is_user_register() else None
+    def get_user_class(self): return self.class_ if self.is_user_register() else None
+    def get_user_grade(self): return int((self.class_)[0]) if self.is_user_register() else None
 
     @staticmethod
     def register_user(user_id, nickname, school, class_):
@@ -87,19 +90,19 @@ class UserProgress:
             self.update_user_information()
 
     def set_achievements(self, new_achievements: list):
-        val = json.dumps(new_achievements, ensure_ascii=False)
+        ach = json.dumps(new_achievements, ensure_ascii=False)
         with conn:
-            conn.execute("UPDATE UsersProgress SET achievements=? WHERE user_id = ?", (val, self.user_id))
+            conn.execute("UPDATE UsersProgress SET achievements = ? WHERE user_id = ?", (ach, self.user_id))
         self.update_user_information()
 
     def set_exp(self, new_exp: float):
         with conn:
-            conn.execute("UPDATE UsersProgress SET exp_count=? WHERE user_id = ?", (new_exp, self.user_id))
+            conn.execute("UPDATE UsersProgress SET exp_count = ? WHERE user_id = ?", (new_exp, self.user_id))
         self.update_user_information()
 
     def set_right_tasks(self, new_count: int):
         with conn:
-            conn.execute("UPDATE UsersProgress SET count_tasks=? WHERE user_id = ?", (new_count, self.user_id))
+            conn.execute("UPDATE UsersProgress SET count_tasks = ? WHERE user_id = ?", (new_count, self.user_id))
         self.update_user_information()
 
     def get_user_achievements(self) -> list:
@@ -109,10 +112,10 @@ class UserProgress:
     def get_user_exp_count(self) -> float: return float(self.all_user_information[2])
     def get_user_sucesfull_tasks(self) -> int: return int(self.all_user_information[3])
 
-    def user_exp_count_plus(self, count: float):
+    def append_user_exp(self, count: float):
         self.set_exp(self.get_user_exp_count() + count)
 
-    def right_tasks_plus(self, count: int):
+    def append_right_tasks_quantity(self, count: int):
         self.set_right_tasks(self.get_user_sucesfull_tasks() + count)
 
 class UserHomeWork:
@@ -196,7 +199,6 @@ class School:
     def update_school_information(self):
         cur = self.conn.cursor()
         self.name,self.schedule_url,self.delta_url = cur.execute(
-            "SELECT * FROM Schools WHERE id = ?", 
+            "SELECT * FROM Schools WHERE user_name = ?", 
             (self.name,)
-
         ).fetchall()
