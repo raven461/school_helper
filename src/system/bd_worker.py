@@ -1,6 +1,10 @@
+from os import path
 import sqlite3
 import json
 import time
+if not path.exists("../user_information.db"):
+    with open("../user_information.db","w"):#костыльное создание файла
+        pass
 conn = sqlite3.connect('users_information.db', check_same_thread=False)
 
 def init_db():
@@ -190,8 +194,9 @@ class School:
     def __init__(self,school_name:str):
         self.name = school_name
         self.conn = conn
-    
-    def update_user_information(self):
+        self.update_school_information()
+
+    def update_school_information(self):
         cur = self.conn.cursor()
         self.name,self.schedule_url,self.delta_url = cur.execute(
             "SELECT * FROM Schools WHERE id = ?", 
