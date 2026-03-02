@@ -2,9 +2,6 @@ from os import path
 import sqlite3
 import json
 import time
-if not path.exists("../user_information.db"):
-    with open("../user_information.db","w"):#костыльное создание файла
-        pass
 conn = sqlite3.connect('users_information.db', check_same_thread=False)
 
 def init_db():
