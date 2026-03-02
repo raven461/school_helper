@@ -193,7 +193,7 @@ class School:
     
     def update_user_information(self):
         cur = self.conn.cursor()
-        self.schedule_url,self. = cur.execute(
-            "SELECT * FROM Schools WHERE name = ?", 
+        self.name,self.schedule_url,self.delta_url = cur.execute(
+            "SELECT * FROM Schools WHERE id = ?", 
             (self.name,)
         ).fetchall()

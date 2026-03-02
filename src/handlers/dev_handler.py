@@ -1,4 +1,5 @@
-from aiogram import Router, types
+from aiogram import Router
+from aiogram.types import Message,InputFile
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -14,17 +15,16 @@ class dev_states(StatesGroup):
     read_email = State()
 
 @router.message(Command("logs"))
-async def logs(message: types.Message, state: FSMContext):
+async def logs(message: Message, state: FSMContext):
     await message.answer("Введите ключ доступа")
     await state.set_state(dev_states.get_bot_logs)
 #TODO:доделать выгрузку логов файлом
 @router.message(dev_states.get_bot_logs)
-async def get_bot_logs(message: types.Message, state: FSMContext):
+async def get_bot_logs(message: Message, state: FSMContext):
     dev_key = message.text
     if dev_key == config.dev_key.get_secret_value():
         with open(LOG_FILE_PATH,"r") as log:
-            log_text = log.readlines()
-            await message.answer("\n".join(log_text))
+            await message.answer_document(LOG_FILE_PATH)
         await message.answer("Готово")
         return
     await message.answer("Неверный ключ доступа. Попробуйте ещё раз или /cancel")
@@ -32,12 +32,12 @@ async def get_bot_logs(message: types.Message, state: FSMContext):
 
 #TODO:доделать получение состояния сервера
 @router.message(Command("server_info"))
-async def server_info(message: types.Message, state: FSMContext):
+async def server_info(message: Message, state: FSMContext):
     await message.answer("Введите ключ доступа")
     await state.set_state(dev_states.get_bot_logs)
 
 @router.message(dev_states.get_server_info)
-async def get_server_info(message: types.Message, state: FSMContext):
+async def get_server_info(message: Message, state: FSMContext):
     dev_key = message.text
     if dev_key == config.dev_key.get_secret_value():
         await message.answer("Готово")
@@ -46,12 +46,12 @@ async def get_server_info(message: types.Message, state: FSMContext):
     await state.set_state(dev_states.get_server_info)
 
 @router.message(Command("delete_db"))
-async def delete_db(message: types.Message, state: FSMContext):
+async def delete_db(message: Message, state: FSMContext):
     await message.answer("Введите ключ доступа")
     await state.set_state(dev_states.drop_db)
 
 @router.message(dev_states.drop_db)
-async def drop_db(message: types.Message, state: FSMContext):
+async def drop_db(message: Message, state: FSMContext):
     dev_key = message.text
     if dev_key == config.dev_key.get_secret_value():
         del_db()
@@ -62,20 +62,21 @@ async def drop_db(message: types.Message, state: FSMContext):
 
 #TODO:доделать отправку логов на почту
 @router.message(Command("send_logs"))
-async def send_logs(message: types.Message, state: FSMContext):
+async def send_logs(message: Message, state: FSMContext):
     await message.answer("Введите ключ доступа")
     await state.set_state(dev_states.send_logs_archives)
 
 @router.message(dev_states.send_logs_archives)
-async def send_logs_archives(message: types.Message, state: FSMContext):
+async def send_logs_archives(message: Message, state: FSMContext):
     dev_key = message.text
     if dev_key == config.dev_key.get_secret_value():
+        await message.answer("Введите email-адрес, по которому должен быть прислан лог-файл")
         await state.set_state(dev_states.read_email)
         return
     await message.answer("Неверный ключ доступа. Попробуйте ещё раз или /cancel")
     await state.set_state(dev_states.send_logs_archives)
 
 @router.message(dev_states.read_email)
-async def send_log_email(message: types.Message, state: FSMContext):
+async def send_log_email(message: Message, state: FSMContext):
     email = message.text
     await message.answer("Готово")
