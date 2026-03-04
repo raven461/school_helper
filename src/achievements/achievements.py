@@ -28,7 +28,7 @@ class Achievements:
                     new_unlocked.append(ach)
                     reward = ach.get("reward_exp", 0)
                     if reward > 0:
-                        prog.user_exp_count_plus(reward)
+                        prog.append_user_exp(reward)
 
         if new_unlocked:
             updated_ids = current_ids + [ach["id"] for ach in new_unlocked]

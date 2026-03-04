@@ -1,5 +1,5 @@
 from connect import conn,init_db
-from bd_dataclasses import SchoolTableRecord
+from bd_dataclasses import SchoolTableRecord,UserTableRecord,HomeworkTableRecord,ProgressTableRecord
 import json
 import time
 init_db()
@@ -7,20 +7,26 @@ init_db()
 class UserController:
     def __init__(self, user_id):
         self.user_id = user_id
+        self.user = None
         self.update_user_information()
 
     def update_user_information(self):
         cur = conn.cursor()
         res = cur.execute("SELECT * FROM Users WHERE user_id = ?", (self.user_id,))
-        self.id,self.name,self.school,self.class_ = res.fetchone()        
+        if res is not None:
+            return
+        self.user_record = UserTableRecord(id = res.fetchone()[0],
+                                           name = res.fetchone()[1],
+                                           school_name = res.fetchone()[2],
+                                           grade = res.fetchone()[3])        
     
     def is_user_register(self) -> bool:
-        return self.school is not None
+        return self.user_record is not None
 
-    def get_user_name(self): return self.name if self.is_user_register() else None
-    def get_user_school(self): return self.school if self.is_user_register() else None
-    def get_user_class(self) -> str|None : return self.class_ if self.is_user_register() else None
-    def get_user_grade(self) -> int|None : return int((self.class_)[0]) if self.is_user_register() else None
+    def get_user_name(self): return self.user_record.name if self.is_user_register() else None
+    def get_user_school(self): return self.user_record.school_name if self.is_user_register() else None
+    def get_user_class(self) -> str|None : return self.user_record.grade if self.is_user_register() else None
+    def get_user_grade(self) -> int|None : return int((self.user_record.grade)[0]) if self.is_user_register() else None
 
     @staticmethod
     def register_user(user_id, nickname, school, class_):
@@ -37,8 +43,11 @@ class UserProgressController:
     def update_user_information(self):
         cur = conn.cursor()
         res = cur.execute("SELECT * FROM UsersProgress WHERE user_id = ?", (self.user_id,))
-        self.all_user_information = res.fetchone()
-        if not self.all_user_information:
+        self.progress_record = ProgressTableRecord(id = res.fetchone()[0],
+                                                   achievments = res.fetchone()[1],
+                                                   exp = res.fetchone()[2],
+                                                   done_tasks = res.fetchone()[3])
+        if not self.progress_record.id == None:
             with conn:
                 conn.execute("INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)", (self.user_id,))
             self.update_user_information()
@@ -60,11 +69,11 @@ class UserProgressController:
         self.update_user_information()
 
     def get_user_achievements(self) -> list:
-        try: return json.loads(self.all_user_information[1])
+        try: return json.loads(str(self.progress_record.achievments))
         except: return []
 
-    def get_user_exp_count(self) -> float: return float(self.all_user_information[2])
-    def get_user_sucesfull_tasks(self) -> int: return int(self.all_user_information[3])
+    def get_user_exp_count(self) -> float: return float(self.progress_record.exp)
+    def get_user_sucesfull_tasks(self) -> int: return int(self.progress_record.done_tasks)
 
     def append_user_exp(self, count: float):
         self.set_exp(self.get_user_exp_count() + count)
@@ -75,6 +84,7 @@ class UserProgressController:
 class UserHomeworkController:
     def __init__(self, user_id):
         self.user_id = user_id
+        self.homework_records:list[HomeworkTableRecord] = []
         self.conn = conn
         self.update_user_information()
 
@@ -84,14 +94,24 @@ class UserHomeworkController:
             "SELECT * FROM UsersHomeWork WHERE user_id = ?", 
             (self.user_id,)
         )
-        self.all_homework = res.fetchall()
+        for raw_record in res.fetchall():
+            record = HomeworkTableRecord(id = raw_record[0],
+                                         user_id = self.user_id,
+                                         subject = raw_record[2],
+                                         task_text = raw_record[3],
+                                         deadline_time = raw_record[4],
+                                         reminder_time = raw_record[5],
+                                         is_done = raw_record[6])
+            self.homework_records.append(record)
+    
     def get_task_id(self,subject_id: str, task_text: str):
         cur = self.conn.cursor()
         res = cur.execute(
             "SELECT * FROM UsersHomeWork WHERE user_id = ? AND subject_id = ? AND task_text = ?", 
             (self.user_id,subject_id,task_text)
         )
-        return res.fetchall()[0]
+        return res.fetchone()[0]
+
     def add_task(self, subject_id: str, task_text: str, deadline_ts: int, reminder_delta_minutes: int = 60):
         reminder_time = deadline_ts - (reminder_delta_minutes * 60)
         with self.conn:
@@ -126,9 +146,9 @@ class UserHomeworkController:
         self.update_user_information()
         
     @staticmethod
-    def get_all_pending_reminders(connection):
+    def get_all_pending_reminders():
         current_ts = int(time.time())
-        cur = connection.cursor()
+        cur = conn.cursor()
         res = cur.execute("""
             SELECT user_id, subject_id, task_text, id 
             FROM UsersHomeWork 
@@ -142,23 +162,22 @@ class UserHomeworkController:
                 "UPDATE UsersHomeWork SET reminder_time = 0 WHERE id = ?", 
                 (task_id,)
             )
-#TODO:реализовать методы удаления школ
+
 class SchoolController:
     def __init__(self):
         self.conn = conn
     def add_school(self, school_name: str,base_url:str,delta_url:str):
         with self.conn:
-            self.conn.execute("""
-                INSERT INTO Schools (school_name, base_url, delta_url) VALUES (?, ?, ?)
-            """, (school_name, base_url, delta_url,))
-
+            self.conn.execute("INSERT INTO Schools (school_name, base_url, delta_url) VALUES (?, ?, ?)", 
+                              (school_name, base_url, delta_url,))
+    def delete_shcool(self, id: int):
+        with self.conn:
+            self.conn.execute("DELETE FROM Schools WHERE id = ?", (id,))
     def get_all_schools(self) -> list[SchoolTableRecord]:
         with self.conn:
-            raw_schools = self.conn.execute("""
-                SELECT * FROM Schools
-            """).fetchall()
+            school_records = self.conn.execute("SELECT * FROM Schools").fetchall()
         schools = []
-        for record in raw_schools:
+        for record in school_records:
             schools.append(
                 SchoolTableRecord(id = record[0],
                                   name = record[1],
@@ -168,5 +187,4 @@ class SchoolController:
     
     def get_school(self,name:str) -> SchoolTableRecord:
         #Возвращается первый элемент списка, поскольку предполагается, что FDIUT (First Data Is Undoubted True)
-        school = list(filter(lambda elem: elem.name == name, self.get_all_schools()))[0]
-        return school
+        return list(filter(lambda elem: elem.name == name, self.get_all_schools()))[0]

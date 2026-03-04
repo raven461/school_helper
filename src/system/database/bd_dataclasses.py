@@ -13,7 +13,7 @@ class ProgressTableRecord(BaseModel):
     done_tasks:int
 
 class HomeworkTableRecord(BaseModel):
-    homework_id:int
+    id:int
     user_id:int
     subject:str
     task_text:str

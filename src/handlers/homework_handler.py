@@ -11,36 +11,27 @@ import logging
 router = Router()
 
 class homework_states(StatesGroup):
+    #Adding homework
     choosing_lesson = State()
     enter_homework_text = State()
     enter_deadline_date = State()
     enter_deadline_time = State()
+    #Set homework done
+    enter_subject = State()
+    enter_text = State()
 
-def init_homework(user_id):
-    global user_homework,user_progress 
+async def deadline_notify(user_id,task_id):
     user_homework = UserHomeworkController(user_id)
-    user_progress = UserProgressController(user_id)
-    pass
-
-def delete_right_tasks(tasks_id: list[int],user_id):
-    init_homework(user_id)
-    for i in tasks_id:
-        user_homework.set_status_complete(i)
-        user_homework.delete_task(i)
-    user_progress.append_right_tasks_quantity(len(tasks_id))
-    user_progress.append_user_exp(0.1*len(tasks_id))
-
-async def deadline_notify(bot,user_id,task_id):
-    id,user,lesson,task,dead_time = user_homework.conn.execute("""SELECT * FROM UserHomeworkController WHERE id = ?""",(task_id))
-    await bot.send_message(user_id,f"Внимание, на выполнение задания по предмету '{lesson}' осталось {dead_time // 3600} ч.\
-                           \n Не упусти шанс сделать!")
+    task = list(filter(lambda elem: elem.id == task_id, user_homework.homework_records))[0]
+    return f"Внимание, на выполнение задания по предмету '{task.subject}'\
+                            осталось примерно {task.deadline_time // 60} минут.\
+                           \n Не упусти шанс сделать!"
 
 @router.message(Command("add_homework"))
 async def add_hometask(message: types.Message, state: FSMContext):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
-    user_homework = UserHomeworkController(message.from_user.id)
     await message.answer("Укажите, по какому предмету вы хотите записать задание:")
     await state.set_state(homework_states.choosing_lesson)
 
@@ -49,8 +40,7 @@ async def choose_lesson(message: types.Message, state: FSMContext):
     if message.text == None:
         await message.answer("Повторите ввод")
         return
-    lesson = message.text
-    await state.update_data(lesson = lesson)
+    await state.update_data(lesson = message.text)
     await message.answer("Введите текст задания или /cancel.\n")
     await state.set_state(homework_states.enter_homework_text)
 
@@ -59,8 +49,7 @@ async def enter_homework_text(message: types.Message, state: FSMContext):
     if message.text == None:
         await message.answer("Повторите ввод")
         return
-    task_text = message.text
-    await state.update_data(task_text = task_text)
+    await state.update_data(task_text = message.text)
     await message.answer("Введите дату, к которой нужно завершить задание в формате ГГГГ.ММ.ДД.ЧЧ или /cancel.\n")
     await state.set_state(homework_states.enter_deadline_date)
 
@@ -72,8 +61,7 @@ async def enter_deadline_date(message: types.Message, state: FSMContext):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
-    deadline_date_text = message.text
-    elems = deadline_date_text.strip().split('.')
+    elems = message.text.strip().split('.')
     if len(elems) != 4:
         await message.answer("Дата должна быть записана в формате ГГГГ.ММ.ДД.ЧЧ.")
         return
@@ -101,21 +89,37 @@ async def homework(message: types.Message):
     await message.answer("\n".join(a))
 
 @router.message(Command("done"))
-async def done(message: types.Message, command: CommandObject):
+async def done(message: types.Message, state: FSMContext):
+    await message.answer("Введите текст задания или /cancel.\n")
+    await state.set_state(homework_states.enter_text)
+
+@router.message(homework_states.enter_subject)
+async def enter_subject(message: types.Message, state: FSMContext):
+    if message.text == None:
+        await message.answer("Повторите ввод")
+        return
+    await state.update_data(subject = message.text)
+    await message.answer("Введите текст задания или /cancel.\n")
+    await state.set_state(homework_states.enter_text)
+
+@router.message(homework_states.enter_text)
+async def enter_text(message: types.Message, state: FSMContext):   
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
+    if message.text == None:
+        await message.answer("Повторите ввод")
+        return
     user_homework = UserHomeworkController(message.from_user.id)
-    if not command.args:
-        return await message.answer("Ошибка! Введите название предмета и текст задания")
-    args = command.args.split(" ")
-    if len(args) < 2:
-        return await message.answer("Ошибка! Введите название предмета и текст задания")
-    subject,*task_text = args
+    user_progress = UserProgressController(message.from_user.id)
+    state_data = await state.get_data()
     try:
-        id = user_homework.get_task_id(subject," ".join(task_text))
+        id = user_homework.get_task_id(str(state_data.get("subject")),message.text)
         user_homework.set_status_complete(id)
+        user_progress.append_right_tasks_quantity(1)
+        user_progress.append_user_exp(0.9)
     except:
         await message.answer("Задание отсутствует")
     finally:
         await message.answer("Готово")
+    await state.clear()
