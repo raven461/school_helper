@@ -1,4 +1,4 @@
-from system.bd_worker import UserProgressController, UserHomeworkController
+from system.database.enties import UserProgressController, UserHomeworkController
 import json
 import ast
 

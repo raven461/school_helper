@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from system.bd_worker import UserHomeworkController,UserProgressController 
+from system.database.enties import UserHomeworkController,UserProgressController 
 from datetime import datetime
 import logging
 
@@ -27,8 +27,8 @@ def delete_right_tasks(tasks_id: list[int],user_id):
     for i in tasks_id:
         user_homework.set_status_complete(i)
         user_homework.delete_task(i)
-    user_progress.right_tasks_plus(len(tasks_id))
-    user_progress.user_exp_count_plus(0.1*len(tasks_id))
+    user_progress.append_right_tasks_quantity(len(tasks_id))
+    user_progress.append_user_exp(0.1*len(tasks_id))
 
 async def deadline_notify(bot,user_id,task_id):
     id,user,lesson,task,dead_time = user_homework.conn.execute("""SELECT * FROM UserHomeworkController WHERE id = ?""",(task_id))

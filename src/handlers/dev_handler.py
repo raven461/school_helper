@@ -1,12 +1,11 @@
-from aiogram import Router, types, F
+from aiogram import Router,F
 from aiogram.types import Message,InlineKeyboardButton,CallbackQuery
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from datetime import datetime
 from config import config,LOG_FILE_PATH
-from system.bd_worker import del_db
+from system.database.connect import del_db
 
 router = Router()
 class dev_states(StatesGroup):

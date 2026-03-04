@@ -1,6 +1,6 @@
 from aiogram import Router, types, F
 from aiogram.filters import Command
-from system.bd_worker import UserProgressController
+from system.database.enties import UserProgressController
 from achievements.achievements import Achievements
 import logging
 

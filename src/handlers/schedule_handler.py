@@ -1,9 +1,9 @@
-from aiogram import Router, types, F
+from aiogram import Router,F
 from aiogram.types import Message,InlineKeyboardButton,CallbackQuery
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from datetime import datetime
-from system.bd_worker import UserController
+from system.database.enties import UserController
 from system.shedule_parser import Parser419School
 from system.exam_parser import Parser419Exams
 import logging
