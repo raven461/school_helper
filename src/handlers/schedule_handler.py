@@ -1,5 +1,5 @@
 from aiogram import Router, types, F
-from aiogram.types import Message,InlineKeyboardButton
+from aiogram.types import Message,InlineKeyboardButton,CallbackQuery
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from datetime import datetime
@@ -81,7 +81,7 @@ def get_dynamic_days_keyboard():
     return builder.as_markup()
 
 @router.callback_query(F.data.startswith("day_"))
-async def handle_day(callback: types.CallbackQuery):
+async def handle_day(callback: CallbackQuery):
     _ = time.time()
     if callback.data == None or callback.message == None:
         logging.error("Empty callback data")

@@ -1,5 +1,5 @@
 from aiogram import Router, types, F
-from aiogram.types import Message,InlineKeyboardButton
+from aiogram.types import Message,InlineKeyboardButton,CallbackQuery
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
@@ -19,19 +19,32 @@ class dev_states(StatesGroup):
 def get_admin_keyboard():
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(
-            text="", 
-            callback_data=""
+            text="Получить файл логов", 
+            callback_data="logs"
         ))
-    builder.adjust(1, 1, 2) 
+    builder.add(InlineKeyboardButton(
+            text="Получить состояние сервера", 
+            callback_data="server_info"
+        ))
+    builder.add(InlineKeyboardButton(
+            text="Отправить файл логов на почту", 
+            callback_data="send_logs"
+        ))
+    builder.add(InlineKeyboardButton(
+            text="Очистить базу данных", 
+            callback_data="drop_db"
+        ))
+    
+    builder.adjust(2, 1, 1) 
     return builder.as_markup()
 
 @router.message(Command("admin_mode"))
 async def admin_pannel(message: Message):
-    pass
+    await message.answer("Команда подтверждена. для выхода нажмите /cancel", reply_markup=get_admin_keyboard())
 
-@router.message(Command("logs"))
-async def logs(message: Message, state: FSMContext):
-    await message.answer("Введите ключ доступа")
+@router.callback_query(F.data.startswith("logs"))
+async def logs(callback: CallbackQuery, state: FSMContext):
+    await callback.answer("Введите ключ доступа")
     await state.set_state(dev_states.get_bot_logs)
 
 #TODO:доделать выгрузку логов файлом
@@ -47,9 +60,9 @@ async def get_bot_logs(message: Message, state: FSMContext):
     await state.set_state(dev_states.get_bot_logs)
 
 #TODO:доделать получение состояния сервера
-@router.message(Command("server_info"))
-async def server_info(message: Message, state: FSMContext):
-    await message.answer("Введите ключ доступа")
+@router.callback_query(F.data.startswith("server_info"))
+async def server_info(callback: CallbackQuery, state: FSMContext):
+    await callback.answer("Введите ключ доступа")
     await state.set_state(dev_states.get_bot_logs)
 
 @router.message(dev_states.get_server_info)
@@ -61,9 +74,9 @@ async def get_server_info(message: Message, state: FSMContext):
     await message.answer("Неверный ключ доступа. Попробуйте ещё раз или /cancel")
     await state.set_state(dev_states.get_server_info)
 
-@router.message(Command("delete_db"))
-async def delete_db(message: Message, state: FSMContext):
-    await message.answer("Введите ключ доступа")
+@router.callback_query(F.data.startswith("drop_db"))
+async def delete_db(callback: CallbackQuery, state: FSMContext):
+    await callback.answer("Введите ключ доступа")
     await state.set_state(dev_states.drop_db)
 
 @router.message(dev_states.drop_db)
@@ -77,9 +90,9 @@ async def drop_db(message: Message, state: FSMContext):
     await state.set_state(dev_states.drop_db)
 
 #TODO:доделать отправку логов на почту
-@router.message(Command("send_logs"))
-async def send_logs(message: Message, state: FSMContext):
-    await message.answer("Введите ключ доступа")
+@router.callback_query(F.data.startswith("send_logs"))
+async def send_logs(callback: CallbackQuery, state: FSMContext):
+    await callback.answer("Введите ключ доступа")
     await state.set_state(dev_states.send_logs_archives)
 
 @router.message(dev_states.send_logs_archives)
