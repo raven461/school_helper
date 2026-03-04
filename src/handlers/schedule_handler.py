@@ -1,9 +1,9 @@
 from aiogram import Router, types, F
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import Message,InlineKeyboardButton
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from datetime import datetime
-from system.bd_worker import User
+from system.bd_worker import UserController
 from system.shedule_parser import Parser419School
 from system.exam_parser import Parser419Exams
 import logging
@@ -87,7 +87,7 @@ async def handle_day(callback: types.CallbackQuery):
         logging.error("Empty callback data")
         return
     selected_day = callback.data.split("_")[1]
-    user = User(callback.from_user.id)
+    user = UserController(callback.from_user.id)
     grade = str(user.get_user_class())
     
     if not grade:
@@ -114,31 +114,31 @@ async def handle_day(callback: types.CallbackQuery):
         pass
     
 @router.message(Command("schedule"))
-async def schedule(message: types.Message):
+async def schedule(message: Message):
     await message.answer("Выберите день:", reply_markup=get_dynamic_days_keyboard())
 
 @router.message(Command("today"))
-async def today(message :types.Message):
+async def today(message: Message):
     if message.from_user == None:
         logging.error("BotUserError: user params is empty")
         return
-    user = User(message.from_user.id)
+    user = UserController(message.from_user.id)
     today = datetime.now().weekday() 
     days_db = ["ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА", "ВОСКРЕСЕНЬЕ"]
     class_ = user.get_user_class()
     await message.answer(
         format_schedule_view(
             days_db[today],
-            class_,
+            str(class_),
             await parser.get_schedule(str(class_)),
             parser.get_delta(str(class_))),
         parse_mode = "HTML"  
     )
 @router.message(Command("exams"))
-async def exams(message:types.Message):
+async def exams(message: Message):
     if message.from_user == None:
         logging.error("BotUserError: user params is empty")
         return
-    user = User(message.from_user.id)
+    user = UserController(message.from_user.id)
     parser = Parser419Exams()
     await message.answer_document(parser.returnFilename(user.get_user_grade()))

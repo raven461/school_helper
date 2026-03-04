@@ -1,6 +1,6 @@
 from aiogram import Router, types, F
 from aiogram.filters import Command
-from system.bd_worker import UserProgress
+from system.bd_worker import UserProgressController
 from achievements.achievements import Achievements
 import logging
 
@@ -14,7 +14,7 @@ async def get_achievements(message: types.Message):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
-    user_progress = UserProgress(message.from_user.id)
+    user_progress = UserProgressController(message.from_user.id)
     try:
         await message.answer("\n".join(user_progress.get_user_achievements()))
     except:
@@ -27,7 +27,7 @@ async def profile(message: types.Message):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
-    user_progress = UserProgress(message.from_user.id)
+    user_progress = UserProgressController(message.from_user.id)
     await message.answer("Name: " + message.from_user.first_name)
     await message.answer("Exp: "+ str(user_progress.get_user_exp_count()))
     await message.answer("Готово")

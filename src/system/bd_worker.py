@@ -1,4 +1,4 @@
-from os import path
+from pydantic import BaseModel
 import sqlite3
 import json
 import time
@@ -10,8 +10,7 @@ def init_db():
             user_id INTEGER PRIMARY KEY,
             full_name TEXT,
             school TEXT,
-            grade TEXT,
-            reg_date DATETIME DEFAULT CURRENT_TIMESTAMP
+            grade TEXT
         );""")
         
         conn.execute("""CREATE TABLE IF NOT EXISTS UsersProgress (
@@ -47,7 +46,34 @@ def del_db():
             DROP TABLE IF EXISTS Schools;""")
 init_db()
 
-class User:
+class UserTableRecord(BaseModel):
+    id:int
+    name:str
+    school_name:str
+    grade:str
+
+class ProgressTableRecord(BaseModel):
+    id:int
+    achievments:list[str]
+    exp:float
+    done_tasks:int
+
+class HomeworkTableRecord(BaseModel):
+    homework_id:int
+    user_id:int
+    subject:str
+    task_text:str
+    deadline_time:int
+    reminder_time:int
+    is_done:bool
+
+class SchoolTableRecord(BaseModel):
+    id:int
+    name:str
+    base_schedule_url:str
+    delta_schedule_url:str
+
+class UserController:
     def __init__(self, user_id):
         self.user_id = user_id
         self.update_user_information()
@@ -62,8 +88,8 @@ class User:
 
     def get_user_name(self): return self.name if self.is_user_register() else None
     def get_user_school(self): return self.school if self.is_user_register() else None
-    def get_user_class(self): return self.class_ if self.is_user_register() else None
-    def get_user_grade(self): return int((self.class_)[0]) if self.is_user_register() else None
+    def get_user_class(self) -> str|None : return self.class_ if self.is_user_register() else None
+    def get_user_grade(self) -> int|None : return int((self.class_)[0]) if self.is_user_register() else None
 
     @staticmethod
     def register_user(user_id, nickname, school, class_):
@@ -72,7 +98,7 @@ class User:
                          (user_id, nickname, school, class_))
             conn.execute("INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)", (user_id,))
 
-class UserProgress:
+class UserProgressController:
     def __init__(self, user_id):
         self.user_id = user_id
         self.update_user_information()
@@ -115,7 +141,7 @@ class UserProgress:
     def append_right_tasks_quantity(self, count: int):
         self.set_right_tasks(self.get_user_sucesfull_tasks() + count)
 
-class UserHomeWork:
+class UserHomeworkController:
     def __init__(self, user_id):
         self.user_id = user_id
         self.conn = conn
@@ -185,17 +211,31 @@ class UserHomeWork:
                 "UPDATE UsersHomeWork SET reminder_time = 0 WHERE id = ?", 
                 (task_id,)
             )
-
-#TODO:работа с базой данных с таблицей школ
-class School:
-    def __init__(self,school_name:str):
-        self.name = school_name
+#TODO:реализовать методы удаления школ
+class SchoolController:
+    def __init__(self):
         self.conn = conn
-        self.update_school_information()
+    def add_school(self, school_name: str,base_url:str,delta_url:str):
+        with self.conn:
+            self.conn.execute("""
+                INSERT INTO Schools (school_name, base_url, delta_url) VALUES (?, ?, ?)
+            """, (school_name, base_url, delta_url,))
 
-    def update_school_information(self):
-        cur = self.conn.cursor()
-        self.name,self.schedule_url,self.delta_url = cur.execute(
-            "SELECT * FROM Schools WHERE user_name = ?", 
-            (self.name,)
-        ).fetchall()
+    def get_all_schools(self) -> list[SchoolTableRecord]:
+        with self.conn:
+            raw_schools = self.conn.execute("""
+                SELECT * FROM Schools
+            """).fetchall()
+        schools = []
+        for record in raw_schools:
+            schools.append(
+                SchoolTableRecord(id = record[0],
+                                  name = record[1],
+                                  base_schedule_url = record[2],
+                                  delta_schedule_url = record[3]))
+        return schools
+    
+    def get_school(self,name:str) -> SchoolTableRecord:
+        #Возвращается первый элемент списка, поскольку предполагается, что FDIUT (First Data Is Undoubted True)
+        school = list(filter(lambda elem: elem.name == name, self.get_all_schools()))[0]
+        return school

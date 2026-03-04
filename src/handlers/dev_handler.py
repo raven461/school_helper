@@ -1,8 +1,10 @@
-from aiogram import Router
-from aiogram.types import Message,InputFile
+from aiogram import Router, types, F
+from aiogram.types import Message,InlineKeyboardButton
 from aiogram.filters import Command
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
+from datetime import datetime
 from config import config,LOG_FILE_PATH
 from system.bd_worker import del_db
 
@@ -14,10 +16,24 @@ class dev_states(StatesGroup):
     send_logs_archives = State()
     read_email = State()
 
+def get_admin_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(
+            text="", 
+            callback_data=""
+        ))
+    builder.adjust(1, 1, 2) 
+    return builder.as_markup()
+
+@router.message(Command("admin_mode"))
+async def admin_pannel(message: Message):
+    pass
+
 @router.message(Command("logs"))
 async def logs(message: Message, state: FSMContext):
     await message.answer("Введите ключ доступа")
     await state.set_state(dev_states.get_bot_logs)
+
 #TODO:доделать выгрузку логов файлом
 @router.message(dev_states.get_bot_logs)
 async def get_bot_logs(message: Message, state: FSMContext):

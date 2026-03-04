@@ -7,10 +7,14 @@ LOG_FILE_ENCODING = "utf-8"
 LOG_FILE_PATH = "./logs/log "+(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S"))+".log"
 
 class Settings(BaseSettings):
+    #API tokens
     bot_token: SecretStr
     ai_token: SecretStr
+    #email config
+    email_login:SecretStr
+    email_password: SecretStr
+    #admin feathures
     dev_key: SecretStr
-    email_key: SecretStr
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), "../.env"),
         env_file_encoding='utf-8',

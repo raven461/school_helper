@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from system.bd_worker import UserHomeWork,UserProgress 
+from system.bd_worker import UserHomeworkController,UserProgressController 
 from datetime import datetime
 import logging
 
@@ -18,8 +18,8 @@ class homework_states(StatesGroup):
 
 def init_homework(user_id):
     global user_homework,user_progress 
-    user_homework = UserHomeWork(user_id)
-    user_progress = UserProgress(user_id)
+    user_homework = UserHomeworkController(user_id)
+    user_progress = UserProgressController(user_id)
     pass
 
 def delete_right_tasks(tasks_id: list[int],user_id):
@@ -31,7 +31,7 @@ def delete_right_tasks(tasks_id: list[int],user_id):
     user_progress.user_exp_count_plus(0.1*len(tasks_id))
 
 async def deadline_notify(bot,user_id,task_id):
-    id,user,lesson,task,dead_time = user_homework.conn.execute("""SELECT * FROM UserHomeWork WHERE id = ?""",(task_id))
+    id,user,lesson,task,dead_time = user_homework.conn.execute("""SELECT * FROM UserHomeworkController WHERE id = ?""",(task_id))
     await bot.send_message(user_id,f"Внимание, на выполнение задания по предмету '{lesson}' осталось {dead_time // 3600} ч.\
                            \n Не упусти шанс сделать!")
 
@@ -40,7 +40,7 @@ async def add_hometask(message: types.Message, state: FSMContext):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
-    user_homework = UserHomeWork(message.from_user.id)
+    user_homework = UserHomeworkController(message.from_user.id)
     await message.answer("Укажите, по какому предмету вы хотите записать задание:")
     await state.set_state(homework_states.choosing_lesson)
 
@@ -78,7 +78,7 @@ async def enter_deadline_date(message: types.Message, state: FSMContext):
         await message.answer("Дата должна быть записана в формате ГГГГ.ММ.ДД.ЧЧ.")
         return
     deadline_date = datetime(int(elems[0]), int(elems[1]), int(elems[2]), int(elems[3]))
-    user_homework = UserHomeWork(message.from_user.id)
+    user_homework = UserHomeworkController(message.from_user.id)
     state_data = await state.get_data()
     user_homework.add_task(
         str(state_data.get("lesson")),
@@ -96,7 +96,7 @@ async def homework(message: types.Message):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
-    user_homework = UserHomeWork(message.from_user.id)
+    user_homework = UserHomeworkController(message.from_user.id)
     a = user_homework.get_active_tasks()
     await message.answer("\n".join(a))
 
@@ -105,7 +105,7 @@ async def done(message: types.Message, command: CommandObject):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
-    user_homework = UserHomeWork(message.from_user.id)
+    user_homework = UserHomeworkController(message.from_user.id)
     if not command.args:
         return await message.answer("Ошибка! Введите название предмета и текст задания")
     args = command.args.split(" ")

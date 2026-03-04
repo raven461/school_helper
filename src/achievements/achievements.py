@@ -1,4 +1,4 @@
-from system.bd_worker import UserProgress, UserHomeWork
+from system.bd_worker import UserProgressController, UserHomeworkController
 import json
 import ast
 
@@ -16,8 +16,8 @@ class Achievements:
         return self.ach_map.get(ach_id, {}).get("desc", "Описание отсутствует")
 
     def update(self, user_id):
-        prog = UserProgress(user_id)
-        hw = UserHomeWork(user_id)
+        prog = UserProgressController(user_id)
+        hw = UserHomeworkController(user_id)
         
         current_ids = prog.get_user_achievements()
         new_unlocked = []

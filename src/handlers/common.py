@@ -2,7 +2,7 @@ from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from system.bd_worker import User
+from system.bd_worker import UserController
 import logging
 
 router = Router()
@@ -53,7 +53,7 @@ async def start_reg(message: types.Message, state: FSMContext):
     if message.from_user == None:
         logging.error("UserNameError: user name is empty")
         return
-    user_info = User(message.from_user.id)
+    user_info = UserController(message.from_user.id)
     if user_info.is_user_register():
         await message.answer(f"Вы уже в базе. Класс: {user_info.get_user_class()}\n\
                              Для смены введите класс заново или /cancel")
@@ -80,7 +80,7 @@ async def process_school(message: types.Message, state: FSMContext):
     if message.from_user == None:
         logging.error("UserNameError: user name is empty")
         return
-    User.register_user(
+    UserController.register_user(
         user_id=message.from_user.id,
         nickname=message.from_user.full_name,
         school=message.text,
