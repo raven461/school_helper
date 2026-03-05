@@ -1,0 +1,4 @@
+class TaskRaitos:
+    BASE_EXP_RAITO = 0.7
+    FAILED_EXP_RAITO = 0.1
+ACHIEVMENT_EXP_RAITO = 0.4
