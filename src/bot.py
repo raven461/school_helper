@@ -1,6 +1,7 @@
 import asyncio
 from aiogram import Bot, Dispatcher
-from config import config, LOG_FILE_PATH, LOG_FILE_ENCODING
+from conf.logging.file_opening import LOG_FILE_PATH, LOG_FILE_ENCODING
+from config import config
 import logging
 from handlers import common,homework_handler,schedule_handler,ai_handler,dev_handler,achievments_handler
 async def main():

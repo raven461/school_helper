@@ -20,19 +20,16 @@ class UserController:
                                            school_name = res.fetchone()[2],
                                            grade = res.fetchone()[3])        
     
-    def is_user_register(self) -> bool:
+    def is_register(self) -> bool:
         return self.user_record is not None
-
-    def get_user_name(self): return self.user_record.name if self.is_user_register() else None
-    def get_user_school(self): return self.user_record.school_name if self.is_user_register() else None
-    def get_user_class(self) -> str|None : return self.user_record.grade if self.is_user_register() else None
-    def get_user_grade(self) -> int|None : return int((self.user_record.grade)[0]) if self.is_user_register() else None
+    
+    def get_user_grade_number(self) -> int|None : return int((self.user_record.grade)[0]) if self.is_register() else None
 
     @staticmethod
-    def register_user(user_id, nickname, school, class_):
+    def register_user(user_id, nickname, school, grade):
         with conn:
             conn.execute("INSERT OR REPLACE INTO Users (user_id, full_name, school, grade) VALUES (?,?,?,?)",
-                         (user_id, nickname, school, class_))
+                         (user_id, nickname, school, grade))
             conn.execute("INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)", (user_id,))
 
 class UserProgressController:

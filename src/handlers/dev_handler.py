@@ -4,7 +4,8 @@ from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from config import config,LOG_FILE_PATH
+from config import config
+from conf.logging.file_opening import LOG_FILE_PATH
 from system.database.connect import del_db
 
 router = Router()

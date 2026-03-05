@@ -88,7 +88,7 @@ async def handle_day(callback: CallbackQuery):
         return
     selected_day = callback.data.split("_")[1]
     user = UserController(callback.from_user.id)
-    grade = str(user.get_user_class())
+    grade = str(user.user_record.grade)
     
     if not grade:
         await callback.answer("Сначала пройдите регистрацию командой /reg", show_alert=True)
@@ -125,13 +125,13 @@ async def today(message: Message):
     user = UserController(message.from_user.id)
     today = datetime.now().weekday() 
     days_db = ["ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА", "ВОСКРЕСЕНЬЕ"]
-    class_ = user.get_user_class()
+    grade = user.user_record.grade
     await message.answer(
         format_schedule_view(
             days_db[today],
-            str(class_),
-            await parser.get_schedule(str(class_)),
-            parser.get_delta(str(class_))),
+            str(grade),
+            await parser.get_schedule(str(grade)),
+            parser.get_delta(str(grade))),
         parse_mode = "HTML"  
     )
 @router.message(Command("exams"))
@@ -141,4 +141,4 @@ async def exams(message: Message):
         return
     user = UserController(message.from_user.id)
     parser = Parser419Exams()
-    await message.answer_document(parser.returnFilename(user.get_user_grade()))
+    await message.answer_document(parser.returnFilename(user.get_user_grade_number()))

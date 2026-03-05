@@ -54,8 +54,8 @@ async def start_reg(message: types.Message, state: FSMContext):
         logging.error("UserNameError: user name is empty")
         return
     user_info = UserController(message.from_user.id)
-    if user_info.is_user_register():
-        await message.answer(f"Вы уже в базе. Класс: {user_info.get_user_class()}\n\
+    if user_info.is_register():
+        await message.answer(f"Вы уже в базе. Класс: {user_info.user_record.grade}\n\
                              Для смены введите класс заново или /cancel")
     await message.answer("Укажите класс (например: 9а или 11б) или /cancel :")
     await state.set_state(registration.choosing_class)
@@ -84,7 +84,7 @@ async def process_school(message: types.Message, state: FSMContext):
         user_id=message.from_user.id,
         nickname=message.from_user.full_name,
         school=message.text,
-        class_= state_data.get("user_class")
+        grade= state_data.get("user_class")
     )
     await message.answer(f"Готово")
     await state.clear()    

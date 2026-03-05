@@ -1,10 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import SecretStr
 import os
-import datetime
-
-LOG_FILE_ENCODING = "utf-8"
-LOG_FILE_PATH = "./logs/log "+(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S"))+".log"
 
 class Settings(BaseSettings):
     #API tokens

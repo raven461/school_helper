@@ -1,4 +1,5 @@
-from aiogram import Router, types, F
+from aiogram import Router, F
+from aiogram.types import Message
 from aiogram.filters import Command
 from system.database.enties import UserProgressController
 from achievements.achievements import Achievements
@@ -10,7 +11,7 @@ async def update_achivments():
     achievements = Achievements()
          
 @router.message(Command("achievements"))
-async def get_achievements(message: types.Message):
+async def get_achievements(message: Message):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
@@ -23,7 +24,7 @@ async def get_achievements(message: types.Message):
         await message.answer("Готово")
 
 @router.message(Command("profile"))
-async def profile(message: types.Message):
+async def profile(message: Message):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
