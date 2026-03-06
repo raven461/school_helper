@@ -1,7 +1,7 @@
 from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.filters import Command, CommandObject
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from system.database.enties import UserHomeworkController,UserProgressController 
@@ -76,6 +76,7 @@ async def enter_deadline_date(message: types.Message, state: FSMContext):
     await message.answer("Задание зарегистрировано.\n")
     await state.clear()
 
+#TODO:добавить клавиатуру с выбором уроков в choose_lesson()
 async def get_lessons_keyboard():
     pass
 
