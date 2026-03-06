@@ -13,8 +13,6 @@ class UserController:
     def update_user_information(self):
         cur = conn.cursor()
         res = cur.execute("SELECT * FROM Users WHERE user_id = ?", (self.user_id,))
-        if res is not None:
-            return
         self.user_record = UserTableRecord(id = res.fetchone()[0],
                                            name = res.fetchone()[1],
                                            school_name = res.fetchone()[2],
@@ -178,8 +176,10 @@ class SchoolController:
             schools.append(
                 SchoolTableRecord(id = record[0],
                                   name = record[1],
-                                  base_schedule_url = record[2],
-                                  delta_schedule_url = record[3]))
+                                  domain_url = record[2],
+                                  base_schedule_url = record[3],
+                                  delta_schedule_url = record[4],
+                                  exams_url = record[5]))
         return schools
     
     def get_school(self,name:str) -> SchoolTableRecord:

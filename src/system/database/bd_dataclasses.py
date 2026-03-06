@@ -24,5 +24,7 @@ class HomeworkTableRecord(BaseModel):
 class SchoolTableRecord(BaseModel):
     id:int
     name:str
+    domain_url:str
     base_schedule_url:str
     delta_schedule_url:str
+    exams_url:str

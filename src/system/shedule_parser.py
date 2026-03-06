@@ -1,14 +1,16 @@
 import httpx
 from lxml import html
 from io import BytesIO
+from database.enties import SchoolController
 import pandas as pd
 import asyncio
 
-class Parser419School:
-    def __init__(self):
-        self.basic_url = "https://419.spb.ru/raspisaniye-urokov"
-        self.delta_url = "https://419.spb.ru/novosti/news_post/izmeneniya-raspisaniya"
-        self.domain = "https://419.spb.ru"
+class ScheduleParser:
+    def __init__(self,school_name:str):
+        school = SchoolController().get_school(school_name)
+        self.basic_url = school.base_schedule_url
+        self.delta_url = school.delta_schedule_url
+        self.domain = school.domain_url
 
     async def update_schedule(self):
         async with httpx.AsyncClient(timeout=10.0) as client:

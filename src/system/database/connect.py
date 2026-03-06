@@ -32,8 +32,10 @@ def init_db():
         conn.execute("""CREATE TABLE IF NOT EXISTS Schools(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT
+            domain_url TEXT
             schedule_url TEXT
             delta_schedule_url TEXT
+            exams_url TEXT
         );""")
 def del_db():
     with conn:

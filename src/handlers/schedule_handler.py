@@ -4,15 +4,15 @@ from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from datetime import datetime
 from system.database.enties import UserController
-from system.shedule_parser import Parser419School
-from system.exam_parser import Parser419Exams
+from system.shedule_parser import ScheduleParser
+from system.exam_parser import ExamsParser
 import logging
 import asyncio
 import time
 import re
 
 router = Router()
-parser = Parser419School()
+parser = ScheduleParser("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
 
 async def update_data_task():
     """Фоновая задача для обновления данных по расписанию каждую минуту"""
@@ -83,7 +83,7 @@ def get_dynamic_days_keyboard():
 @router.callback_query(F.data.startswith("day_"))
 async def handle_day(callback: CallbackQuery):
     _ = time.time()
-    if callback.data == None or callback.message == None:
+    if callback.data is None or callback.message is None:
         logging.error("Empty callback data")
         return
     selected_day = callback.data.split("_")[1]
@@ -140,5 +140,5 @@ async def exams(message: Message):
         logging.error("BotUserError: user params is empty")
         return
     user = UserController(message.from_user.id)
-    parser = Parser419Exams()
+    parser = ExamsParser("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
     await message.answer_document(parser.returnFilename(user.get_user_grade_number()))
