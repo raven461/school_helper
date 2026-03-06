@@ -2,7 +2,7 @@ from system.database.enties import UserProgressController, UserHomeworkControlle
 import json
 import ast
 
-#TODO:доделать обработку данных из json
+#TODO:отладить обработку данных из json
 class Achievements:
     def __init__(self):
         with open("achievements.json","r", encoding="utf-8") as achievements:
@@ -34,4 +34,5 @@ class Achievements:
             updated_ids = current_ids + [ach["id"] for ach in new_unlocked]
             prog.set_achievements(updated_ids)
             
+
         return new_unlocked
