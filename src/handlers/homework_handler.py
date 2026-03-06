@@ -71,7 +71,7 @@ async def enter_deadline_date(message: types.Message, state: FSMContext):
     user_homework.add_task(
         str(state_data.get("lesson")),
         str(state_data.get("task_text")),
-        int((deadline_date - datetime.now()).total_seconds())
+        int(deadline_date.timestamp())
     )
     await message.answer("Задание зарегистрировано.\n")
     await state.clear()
