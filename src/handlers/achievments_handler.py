@@ -30,5 +30,5 @@ async def profile(message: Message):
         return
     user_progress = UserProgressController(message.from_user.id)
     await message.answer("Name: " + message.from_user.first_name)
-    await message.answer("Exp: "+ str(user_progress.get_user_exp_count()))
+    await message.answer("Exp: "+ str(user_progress.exp))
     await message.answer("Готово")

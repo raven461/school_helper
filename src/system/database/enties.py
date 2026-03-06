@@ -21,7 +21,8 @@ class UserController:
     def is_register(self) -> bool:
         return self.user_record is not None
     
-    def get_user_grade_number(self) -> int|None : return int((self.user_record.grade)[0]) if self.is_register() else None
+    @property
+    def grade_number(self) -> int|None : return int((self.user_record.grade)[0]) if self.is_register() else None
 
     @staticmethod
     def register_user(user_id, nickname, school, grade):
@@ -67,14 +68,16 @@ class UserProgressController:
         try: return json.loads(str(self.progress_record.achievments))
         except: return []
 
-    def get_user_exp_count(self) -> float: return float(self.progress_record.exp)
-    def get_user_sucesfull_tasks(self) -> int: return int(self.progress_record.done_tasks)
+    @property
+    def exp(self) -> float: return self.progress_record.exp
+    @property
+    def sucesfull_tasks(self) -> int: return self.progress_record.done_tasks
 
     def append_user_exp(self, count: float):
-        self.set_exp(self.get_user_exp_count() + count)
+        self.set_exp(self.exp + count)
 
     def append_right_tasks_quantity(self, count: int):
-        self.set_right_tasks(self.get_user_sucesfull_tasks() + count)
+        self.set_right_tasks(self.sucesfull_tasks + count)
 
 class UserHomeworkController:
     def __init__(self, user_id):

@@ -141,4 +141,4 @@ async def exams(message: Message):
         return
     user = UserController(message.from_user.id)
     parser = ExamsParser("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
-    await message.answer_document(parser.returnFilename(user.get_user_grade_number()))
+    await message.answer_document(parser.returnFilename(user.grade_number))
