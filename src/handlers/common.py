@@ -67,7 +67,7 @@ async def process_class(message: types.Message, state: FSMContext):
         return
     user_class = message.text.lower().strip().replace(" ", "")
     if not any(char.isdigit() for char in user_class):
-        await message.answer("Используйте формат "цифра+буква" (8в).")
+        await message.answer("Используйте формат 'цифра+буква' (8в).")
         return
     await state.update_data(user_class = user_class)
     await message.answer("Введите название школы или /cancel.\n"\
