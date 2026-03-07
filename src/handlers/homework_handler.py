@@ -23,7 +23,7 @@ class homework_states(StatesGroup):
 async def deadline_notify(user_id,task_id):
     user_homework = UserHomeworkController(user_id)
     task = list(filter(lambda elem: elem.id == task_id, user_homework.homework_records))[0]
-    return f"Внимание, на выполнение задания по предмету "{task.subject}"\
+    return f"Внимание, на выполнение задания по предмету '{task.subject}'\
                             осталось примерно {task.deadline_time // 60} минут.\
                            \n Не упусти шанс сделать!"
 
@@ -55,24 +55,23 @@ async def enter_homework_text(message: types.Message, state: FSMContext):
 
 @router.message(homework_states.enter_deadline_date)
 async def enter_deadline_date(message: types.Message, state: FSMContext):
-    if message.text == None:
-        await message.answer("Повторите ввод")
+    try:
+        elems = message.text.strip().split(".")
+        if len(elems) != 4:
+            await message.answer("Дата должна быть записана в формате ГГГГ.ММ.ДД.ЧЧ.")
+            return
+    
+        year, month, day, hour = map(int, elems)
+        deadline_date = datetime(year, month, day, hour)
+    
+        if deadline_date <= datetime.now():
+            await message.answer("Дата должна быть в будущем!")
+            return
+        
+    except ValueError:
+        await message.answer("Неверный формат даты. Используйте ГГГГ.ММ.ДД.ЧЧ (например: 2024.12.25.18)")
         return
-    if message.from_user == None:
-        logging.error("UserError: user params is empty")
-        return
-    elems = message.text.strip().split(".")
-    if len(elems) != 4:
-        await message.answer("Дата должна быть записана в формате ГГГГ.ММ.ДД.ЧЧ.")
-        return
-    deadline_date = datetime(int(elems[0]), int(elems[1]), int(elems[2]), int(elems[3]))
-    user_homework = UserHomeworkController(message.from_user.id)
-    state_data = await state.get_data()
-    user_homework.add_task(
-        str(state_data.get("lesson")),
-        str(state_data.get("task_text")),
-        int(deadline_date.timestamp())
-    )
+
     await message.answer("Задание зарегистрировано.\n")
     await state.clear()
 
