@@ -16,7 +16,7 @@ class HomeworkTableRecord(BaseModel):
     id:int
     user_id:int
     subject:str
-    task_text:str
+    text:str
     deadline_time:int
     reminder_time:int
     is_done:bool
@@ -27,4 +27,4 @@ class SchoolTableRecord(BaseModel):
     domain_url:str
     base_schedule_url:str
     delta_schedule_url:str
-    exams_url:str
+    exams_urls:list[str]

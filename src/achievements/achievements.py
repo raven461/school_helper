@@ -14,7 +14,7 @@ class Achievements:
     def get_achievement_desc(self, ach_id):
         return self.ach_map.get(ach_id, {}).get("desc", "Описание отсутствует")
 
-    def update(self, user_id):
+    async def update(self, user_id):
         prog = UserProgressController(user_id)
         hw = UserHomeworkController(user_id)
         
@@ -27,10 +27,10 @@ class Achievements:
                     new_unlocked.append(ach)
                     reward = ach.get("reward_exp", 0)
                     if reward > 0:
-                        prog.append_user_exp(reward)
+                        await prog.append_user_exp(reward)
 
         if new_unlocked:
             updated_ids = current_ids + [ach["id"] for ach in new_unlocked]
-            prog.set_achievements(updated_ids)
+            await prog.set_achievements(updated_ids)
             
         return new_unlocked

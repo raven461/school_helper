@@ -1,8 +1,10 @@
-import sqlite3
-conn = sqlite3.connect('users_information.db', check_same_thread=False)
+import aiosqlite
 
-def init_db():
-    with conn:
+def get_db_connection():
+    return aiosqlite.connect('users_information.db')
+
+async def init_db():
+    async with get_db_connection() as conn:
         conn.execute("""CREATE TABLE IF NOT EXISTS Users (
             user_id INTEGER PRIMARY KEY,
             full_name TEXT,
@@ -32,13 +34,12 @@ def init_db():
         conn.execute("""CREATE TABLE IF NOT EXISTS Schools(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
-            domain_url TEXT,
             schedule_url TEXT,
             delta_schedule_url TEXT,
-            exams_url TEXT
+            exams_urls TEXT[]
         );""")
-def del_db():
-    with conn:
+async def del_db():
+    async with get_db_connection() as conn:
         conn.execute("""DROP TABLE IF EXISTS Users;
             DROP TABLE IF EXISTS UsersProgress;
             DROP TABLE IF EXISTS UsersHomeWork;

@@ -1,190 +1,255 @@
-from connect import conn,init_db
-from bd_dataclasses import SchoolTableRecord,UserTableRecord,HomeworkTableRecord,ProgressTableRecord
+from connect import get_db_connection, init_db
+from bd_dataclasses import SchoolTableRecord, UserTableRecord, HomeworkTableRecord, ProgressTableRecord
 import json
 import time
-init_db()
+import asyncio
+import logging
+
+asyncio.run(init_db())
 
 class UserController:
     def __init__(self, user_id):
         self.user_id = user_id
-        self.user = None
-        self.update_user_information()
+        asyncio.run(self.update_user_information())
 
-    def update_user_information(self):
-        cur = conn.cursor()
-        res = cur.execute("SELECT * FROM Users WHERE user_id = ?", (self.user_id,)).fetchone()
-        self.user_record = UserTableRecord(id = res[0],
-                                           name = res[1],
-                                           school_name = res[2],
-                                           grade = res[3])        
-    
+    async def update_user_information(self):
+        async with get_db_connection() as conn:
+            async with conn.execute(
+                "SELECT * FROM Users WHERE user_id = ?",
+                (self.user_id,)
+            ) as cursor:
+                res = await cursor.fetchone()
+                if res:
+                    self.user_record = UserTableRecord(
+                        id=res[0],
+                        name=res[1],
+                        school_name=res[2],
+                        grade=res[3]
+                    )
+                else:
+                    logging.error("RecordFoundError: user record not found")
+
     def is_register(self) -> bool:
-        return self.user_record is not None
-    
+        return hasattr(self, 'user_record') and self.user_record is not None
+
     @property
-    def grade_number(self) -> int|None : return int((self.user_record.grade)[0]) if self.is_register() else None
+    def grade_number(self) -> int | None:
+        return int((self.user_record.grade)[0]) if self.is_register() else None
 
     @staticmethod
-    def register_user(user_id, nickname, school, grade):
-        with conn:
-            conn.execute("INSERT OR REPLACE INTO Users (user_id, full_name, school, grade) VALUES (?,?,?,?)",
-                         (user_id, nickname, school, grade))
-            conn.execute("INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)", (user_id,))
+    async def register_user(user_id, nickname, school, grade):
+        async with get_db_connection() as conn:
+            await conn.execute(
+                "INSERT OR REPLACE INTO Users (user_id, full_name, school, grade) VALUES (?,?,?,?)",
+                (user_id, nickname, school, grade)
+            )
+            await conn.execute(
+                "INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)",
+                (user_id,)
+            )
+            await conn.commit()
+class UserHomeworkController:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.homework_records: list[HomeworkTableRecord] = []
+        asyncio.run(self.update_user_information())
+
+    async def update_user_information(self):
+        async with await get_db_connection() as conn:
+            async with conn.execute(
+                "SELECT * FROM UsersHomeWork WHERE user_id = ?",
+                (self.user_id,)
+            ) as cursor:
+                self.homework_records.clear()
+                for raw in await cursor.fetchall():
+                    record = HomeworkTableRecord(
+                        id=raw[0],
+                        user_id=self.user_id,
+                        subject=raw[2],
+                        text=raw[3],
+                        deadline_time=raw[4],
+                        reminder_time=raw[5],
+                        is_done=raw[6]
+                    )
+                    self.homework_records.append(record)
+
+    async def get_task_id(self, subject_id: str, task_text: str) -> int | None:
+        async with await get_db_connection() as conn:
+            async with conn.execute(
+                "SELECT id FROM UsersHomeWork WHERE user_id = ? AND subject_id = ? AND task_text = ?",
+                (self.user_id, subject_id, task_text)
+            ) as cursor:
+                res = await cursor.fetchone()
+                return res[0] if res else None
+
+    async def add_task(self, subject_id: str, task_text: str, deadline_ts: int, reminder_delta_minutes: int = 60):
+        reminder_time = deadline_ts - (reminder_delta_minutes * 60)
+        async with await get_db_connection() as conn:
+            await conn.execute(
+                "INSERT INTO UsersHomeWork (user_id, subject_id, task_text, deadline, reminder_time, status) "
+                "VALUES (?, ?, ?, ?, ?, 0)",
+                (self.user_id, subject_id, task_text, deadline_ts, reminder_time)
+            )
+            await conn.commit()
+        await self.update_user_information()
+
+    async def set_status_complete(self, task_id: int):
+        async with await get_db_connection() as conn:
+            await conn.execute(
+                "UPDATE UsersHomeWork SET status = 1 WHERE id = ? AND user_id = ?",
+                (task_id, self.user_id)
+            )
+            await conn.commit()
+        await self.update_user_information()
+
+    async def get_active_tasks(self) -> list[HomeworkTableRecord]:
+        await self.update_user_information()
+        active_tasks = []
+        for task in self.homework_records:
+            if task.is_done == False:
+                active_tasks.append(task)
+        return active_tasks
+
+    async def delete_task(self, task_id: int):
+        async with await get_db_connection() as conn:
+            await conn.execute(
+                "DELETE FROM UsersHomeWork WHERE id = ? AND user_id = ?",
+                (task_id, self.user_id)
+            )
+            await conn.commit()
+        await self.update_user_information()
+
+    async def get_all_pending_reminders(self):
+        current_ts = int(time.time())
+        await self.update_user_information()
+        result = []
+        for record in self.homework_records:
+            if (not record.is_done) and (record.reminder_time > 0) and (record.reminder_time < current_ts) :
+                result.append(record)
+        return result
+    
+    async def clear_reminder(self, task_id: int):
+        async with await get_db_connection() as conn:
+            await conn.execute(
+                "UPDATE UsersHomeWork SET reminder_time = 0 WHERE id = ?",
+                (task_id,)
+            )
+            await conn.commit()
 
 class UserProgressController:
     def __init__(self, user_id):
         self.user_id = user_id
-        self.update_user_information()
+        asyncio.run(self.update_user_information())
 
-    def update_user_information(self):
-        cur = conn.cursor()
-        res = cur.execute("SELECT * FROM UsersProgress WHERE user_id = ?", (self.user_id,)).fetchone()
-        self.progress_record = ProgressTableRecord(id = res[0],
-                                                   achievments = res[1],
-                                                   exp = res[2],
-                                                   done_tasks = res[3])
-        if not self.progress_record.id == None:
-            with conn:
-                conn.execute("INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)", (self.user_id,))
-            self.update_user_information()
+    async def update_user_information(self):
+        async with get_db_connection() as conn:
+            async with conn.execute(
+                "SELECT * FROM UsersProgress WHERE user_id = ?",
+                (self.user_id,)
+            ) as cursor:
+                res = await cursor.fetchone()
+                if res:
+                    self.progress_record = ProgressTableRecord(
+                        id=res[0],
+                        achievments=res[1],
+                        exp=res[2],
+                        done_tasks=res[3]
+                    )
+                    if self.progress_record.id is None:
+                        await conn.execute(
+                            "INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)",
+                            (self.user_id,)
+                        )
+                        await conn.commit()
+                        await self.update_user_information()
 
-    def set_achievements(self, new_achievements: list):
+    async def set_achievements(self, new_achievements: list):
         ach = json.dumps(new_achievements, ensure_ascii=False)
-        with conn:
-            conn.execute("UPDATE UsersProgress SET achievements = ? WHERE user_id = ?", (ach, self.user_id))
-        self.update_user_information()
+        async with get_db_connection() as conn:
+            await conn.execute(
+                "UPDATE UsersProgress SET achievements = ? WHERE user_id = ?",
+                (ach, self.user_id)
+            )
+            await conn.commit()
+        await self.update_user_information()
 
-    def set_exp(self, new_exp: float):
-        with conn:
-            conn.execute("UPDATE UsersProgress SET exp_count = ? WHERE user_id = ?", (new_exp, self.user_id))
-        self.update_user_information()
+    async def set_exp(self, new_exp: float):
+        async with get_db_connection() as conn:
+            await conn.execute(
+                "UPDATE UsersProgress SET exp_count = ? WHERE user_id = ?",
+                (new_exp, self.user_id)
+            )
+            await conn.commit()
+        await self.update_user_information()
 
-    def set_right_tasks(self, new_count: int):
-        with conn:
-            conn.execute("UPDATE UsersProgress SET count_tasks = ? WHERE user_id = ?", (new_count, self.user_id))
-        self.update_user_information()
+    async def set_right_tasks(self, new_count: int):
+        async with get_db_connection() as conn:
+            await conn.execute(
+                "UPDATE UsersProgress SET count_tasks = ? WHERE user_id = ?",
+                (new_count, self.user_id)
+            )
+            await conn.commit()
+        await self.update_user_information()
 
     def get_user_achievements(self) -> list:
-        try: return json.loads(str(self.progress_record.achievments))
-        except: return []
+        try:
+            return json.loads(str(self.progress_record.achievments))
+        except:
+            return []
 
     @property
-    def exp(self) -> float: return self.progress_record.exp
+    def exp(self) -> float:
+        return self.progress_record.exp
+
     @property
-    def sucesfull_tasks(self) -> int: return self.progress_record.done_tasks
+    def sucesfull_tasks(self) -> int:
+        return self.progress_record.done_tasks
 
-    def append_user_exp(self, count: float):
-        self.set_exp(self.exp + count)
+    async def append_user_exp(self, count: float):
+        await self.set_exp(self.exp + count)
 
-    def append_right_tasks_quantity(self, count: int):
-        self.set_right_tasks(self.sucesfull_tasks + count)
-
-class UserHomeworkController:
-    def __init__(self, user_id):
-        self.user_id = user_id
-        self.homework_records:list[HomeworkTableRecord] = []
-        self.conn = conn
-        self.update_user_information()
-
-    def update_user_information(self):
-        cur = self.conn.cursor()
-        res = cur.execute(
-            "SELECT * FROM UsersHomeWork WHERE user_id = ?", 
-            (self.user_id,)
-        )
-        for raw_record in res.fetchall():
-            record = HomeworkTableRecord(id = raw_record[0],
-                                         user_id = self.user_id,
-                                         subject = raw_record[2],
-                                         task_text = raw_record[3],
-                                         deadline_time = raw_record[4],
-                                         reminder_time = raw_record[5],
-                                         is_done = raw_record[6])
-            self.homework_records.append(record)
-    
-    def get_task_id(self,subject_id: str, task_text: str):
-        cur = self.conn.cursor()
-        res = cur.execute(
-            "SELECT * FROM UsersHomeWork WHERE user_id = ? AND subject_id = ? AND task_text = ?", 
-            (self.user_id,subject_id,task_text)
-        )
-        return res.fetchone()[0]
-
-    def add_task(self, subject_id: str, task_text: str, deadline_ts: int, reminder_delta_minutes: int = 60):
-        reminder_time = deadline_ts - (reminder_delta_minutes * 60)
-        with self.conn:
-            self.conn.execute("""
-                INSERT INTO UsersHomeWork (user_id, subject_id, task_text, deadline, reminder_time, status)
-                VALUES (?, ?, ?, ?, ?, 0)
-            """, (self.user_id, subject_id, task_text, deadline_ts, reminder_time))
-        self.update_user_information()
-
-    def set_status_complete(self, task_id: int):
-        with self.conn:
-            self.conn.execute(
-                "UPDATE UsersHomeWork SET status = 1 WHERE id = ? AND user_id = ?", 
-                (task_id, self.user_id)
-            )
-        self.update_user_information()
-
-    def get_active_tasks(self):
-        cur = self.conn.cursor()
-        res = cur.execute(
-            "SELECT * FROM UsersHomeWork WHERE user_id = ? AND status = 0 ORDER BY deadline ASC", 
-            (self.user_id,)
-        )
-        return res.fetchall()
-
-    def delete_task(self, task_id: int):
-        with self.conn:
-            self.conn.execute(
-                "DELETE FROM UsersHomeWork WHERE id = ? AND user_id = ?", 
-                (task_id, self.user_id)
-            )
-        self.update_user_information()
-        
-    @staticmethod
-    def get_all_pending_reminders():
-        current_ts = int(time.time())
-        cur = conn.cursor()
-        res = cur.execute("""
-            SELECT user_id, subject_id, task_text, id 
-            FROM UsersHomeWork 
-            WHERE status = 0 AND reminder_time <= ? AND reminder_time > 0
-        """, (current_ts,))
-        return res.fetchall()
-
-    def clear_reminder(self, task_id: int):
-        with self.conn:
-            self.conn.execute(
-                "UPDATE UsersHomeWork SET reminder_time = 0 WHERE id = ?", 
-                (task_id,)
-            )
+    async def append_right_tasks_quantity(self, count: int):
+        await self.set_right_tasks(self.sucesfull_tasks + count)
 
 class SchoolController:
     def __init__(self):
-        self.conn = conn
-    def add_school(self, school_name: str,base_url:str,delta_url:str):
-        with self.conn:
-            self.conn.execute("INSERT INTO Schools (school_name, base_url, delta_url) VALUES (?, ?, ?)", 
-                              (school_name, base_url, delta_url,))
-    def delete_shcool(self, id: int):
-        with self.conn:
-            self.conn.execute("DELETE FROM Schools WHERE id = ?", (id,))
-    def get_all_schools(self) -> list[SchoolTableRecord]:
-        with self.conn:
-            school_records = self.conn.execute("SELECT * FROM Schools").fetchall()
+        pass
+
+    async def add_school(self, school_name: str, base_url: str, delta_url: str, ):
+        async with await get_db_connection() as conn:
+            await conn.execute(
+                "INSERT INTO Schools (school_name, base_url, delta_url,exams) VALUES (?, ?, ?,'[]')",
+                (school_name, base_url, delta_url,)
+            )
+            await conn.commit()
+
+    async def delete_school(self, id: int):
+        async with await get_db_connection() as conn:
+            await conn.execute(
+                "DELETE FROM Schools WHERE id = ?",
+                (id)
+            )
+            await conn.commit()
+
+    async def get_all_schools(self) -> list[SchoolTableRecord]:
+        async with await get_db_connection() as conn:
+            async with conn.execute("SELECT * FROM Schools") as cursor:
+                school_records = await cursor.fetchall()
         schools = []
         for record in school_records:
             schools.append(
-                SchoolTableRecord(id = record[0],
-                                  name = record[1],
-                                  domain_url = record[2],
-                                  base_schedule_url = record[3],
-                                  delta_schedule_url = record[4],
-                                  exams_url = record[5]))
+                SchoolTableRecord(
+                    id=record[0],
+                    name=record[1],
+                    domain_url=record[2],
+                    base_schedule_url=record[3],
+                    delta_schedule_url=record[4],
+                    exams_urls=record[5]
+                )
+            )
         return schools
-    
-    def get_school(self,name:str) -> SchoolTableRecord:
-        #Возвращается первый элемент списка, поскольку предполагается, что FDIUT (First Data Is Undoubted True)
-        return list(filter(lambda elem: elem.name == name, self.get_all_schools()))[0]
+
+    async def get_school(self, name: str) -> SchoolTableRecord | None:
+        all_schools = await self.get_all_schools()
+        matching_schools = [school for school in all_schools if school.name == name]
+        return matching_schools[0] if matching_schools else None

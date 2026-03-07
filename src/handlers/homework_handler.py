@@ -85,8 +85,15 @@ async def homework(message: types.Message):
         logging.error("UserError: user params is empty")
         return
     user_homework = UserHomeworkController(message.from_user.id)
-    a = user_homework.get_active_tasks()
-    await message.answer("\n".join(a))
+    tasks = await user_homework.get_active_tasks()
+    if not tasks:
+        await message.answer("У вас нет активных заданий")
+        return
+    formatted_tasks = []
+    for task in tasks:
+        deadline = datetime.fromtimestamp(float(task.deadline_time))
+        formatted_tasks.append(f"📌 {task.subject}: {task.text}\n⏰ До: {deadline.strftime('%d.%m.%Y %H:00')}")
+    await message.answer("📚 <b>Ваши задания:</b>\n\n" + "\n\n".join(formatted_tasks), parse_mode="HTML")
 
 @router.message(Command("done"))
 async def done(message: types.Message, state: FSMContext):
@@ -114,10 +121,10 @@ async def enter_text(message: types.Message, state: FSMContext):
     user_progress = UserProgressController(message.from_user.id)
     state_data = await state.get_data()
     try:
-        id = user_homework.get_task_id(str(state_data.get("subject")),message.text)
-        user_homework.set_status_complete(id)
-        user_progress.append_right_tasks_quantity(1)
-        user_progress.append_user_exp(0.9)
+        id = await user_homework.get_task_id(str(state_data.get("subject")),message.text)
+        await user_homework.set_status_complete(id)
+        await user_progress.append_right_tasks_quantity(1)
+        await user_progress.append_user_exp(0.9)
     except:
         await message.answer("Задание отсутствует")
     finally:

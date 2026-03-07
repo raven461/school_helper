@@ -80,7 +80,7 @@ async def process_school(message: types.Message, state: FSMContext):
     if message.from_user == None:
         logging.error("UserNameError: user name is empty")
         return
-    UserController.register_user(
+    await UserController.register_user(
         user_id=message.from_user.id,
         nickname=message.from_user.full_name,
         school=message.text,

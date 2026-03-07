@@ -33,7 +33,8 @@ async def process_ask_ai(message: types.Message, state: FSMContext):
         return
     async with ChatActionSender.typing(bot=message.bot, chat_id=message.chat.id):
         try:
-            answer = await ai.get_request_to_ai(text_from_tg_photo(message.photo[-1]))
+            answer = await ai.get_request_to_ai(await text_from_tg_photo(message.bot,message.photo[-1]) +
+                                                str(message.text))
         except:
             answer = str(await ai.get_request_to_ai(str(message.text)))
         finally:

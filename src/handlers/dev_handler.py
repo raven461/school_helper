@@ -47,7 +47,6 @@ async def logs(callback: CallbackQuery, state: FSMContext):
     await callback.answer("Введите ключ доступа")
     await state.set_state(dev_states.get_bot_logs)
 
-#TODO:доделать выгрузку логов файлом
 @router.message(dev_states.get_bot_logs)
 async def get_bot_logs(message: Message, state: FSMContext):
     dev_key = message.text
@@ -83,7 +82,7 @@ async def delete_db(callback: CallbackQuery, state: FSMContext):
 async def drop_db(message: Message, state: FSMContext):
     dev_key = message.text
     if dev_key == config.dev_key.get_secret_value():
-        del_db()
+        await del_db()
         await message.answer("Готово")
         return
     await message.answer("Неверный ключ доступа. Попробуйте ещё раз или /cancel")

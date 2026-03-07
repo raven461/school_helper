@@ -4,10 +4,15 @@ from io import BytesIO
 from database.enties import SchoolController
 import pandas as pd
 import asyncio
+import logging
 
+#TODO: добавить функции для поддержки парсинга сайтов других школ
 class ScheduleParser:
-    def __init__(self,school_name:str):
-        school = SchoolController().get_school(school_name)
+    async def __init__(self,school_name:str):
+        school = await SchoolController().get_school(school_name)
+        if school is None:
+            logging.error(f"NoRecordError: in table Schools isn't records with name == {school_name}")
+            return
         self.basic_url = school.base_schedule_url
         self.delta_url = school.delta_schedule_url
         self.domain = school.domain_url
@@ -17,7 +22,7 @@ class ScheduleParser:
             try:
                 resp = await client.get(self.basic_url)
                 tree = html.fromstring(resp.content)
-                links = tree.xpath("//a[contains(@href, "deti") and contains(@href, ".xls")]/@href")
+                links = tree.xpath("//a[contains(@href, 'deti') and contains(@href, '.xls')]/@href")
                 if not links: return False
                 file_resp = await client.get(self.domain + links[0])
                 self.data = file_resp.content
@@ -45,7 +50,7 @@ class ScheduleParser:
                 if val in days:
                     curr_day = val
                     schedule[curr_day] = []
-                if curr_day and str(row.iloc[col_idx]).strip().lower() not in ["nan", target_clean]:
+                if curr_day and str(row.iloc[col_idx]).strip().lower() not in ['nan', target_clean]:
                     schedule[curr_day].append(str(row.iloc[col_idx]).strip())
             return schedule
         except Exception as e: return f"Ошибка: {e}"
@@ -61,12 +66,12 @@ class ScheduleParser:
                 tree = html.fromstring(resp.content)
                 self.table_delta = {}
                 days = ["ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА"]
-                for table in tree.xpath("//table"):
+                for table in tree.xpath('//table'):
                     txt = table.text_content().upper()
                     day = next((d for d in days if d in txt), None)
                     if day:
-                        for row in table.xpath(".//tr")[1:]:
-                            cells = [c.text_content().strip() for c in row.xpath(".//td")]
+                        for row in table.xpath('.//tr')[1:]:
+                            cells = [c.text_content().strip() for c in row.xpath('.//td')]
                             if len(cells) >= 6 and any(i.isdigit() for i in cells[0]):
                                 self.table_delta.setdefault(day, []).append({
                                     "class": cells[0].lower(), "num": cells[1],
