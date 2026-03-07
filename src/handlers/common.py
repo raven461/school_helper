@@ -55,9 +55,9 @@ async def start_reg(message: types.Message, state: FSMContext):
         return
     user_info = UserController(message.from_user.id)
     if user_info.is_register():
-        await message.answer(f"Вы уже в базе. Класс: {user_info.user_record.grade}\n\
-                             Для смены введите класс заново или /cancel")
-    await message.answer("Укажите класс (например: 9а или 11б) или /cancel :")
+        await message.answer(f"Вы уже в базе. Класс: {user_info.user_record.grade}\n"
+                         "Для смены введите класс заново или /cancel")
+    else: await message.answer("Укажите класс (например: 9а или 11б) или /cancel:")
     await state.set_state(registration.choosing_class)
 
 @router.message(registration.choosing_class)
