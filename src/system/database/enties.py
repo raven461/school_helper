@@ -12,11 +12,11 @@ class UserController:
 
     def update_user_information(self):
         cur = conn.cursor()
-        res = cur.execute("SELECT * FROM Users WHERE user_id = ?", (self.user_id,))
-        self.user_record = UserTableRecord(id = res.fetchone()[0],
-                                           name = res.fetchone()[1],
-                                           school_name = res.fetchone()[2],
-                                           grade = res.fetchone()[3])        
+        res = cur.execute("SELECT * FROM Users WHERE user_id = ?", (self.user_id,)).fetchone()
+        self.user_record = UserTableRecord(id = res[0],
+                                           name = res[1],
+                                           school_name = res[2],
+                                           grade = res[3])        
     
     def is_register(self) -> bool:
         return self.user_record is not None
@@ -38,11 +38,11 @@ class UserProgressController:
 
     def update_user_information(self):
         cur = conn.cursor()
-        res = cur.execute("SELECT * FROM UsersProgress WHERE user_id = ?", (self.user_id,))
-        self.progress_record = ProgressTableRecord(id = res.fetchone()[0],
-                                                   achievments = res.fetchone()[1],
-                                                   exp = res.fetchone()[2],
-                                                   done_tasks = res.fetchone()[3])
+        res = cur.execute("SELECT * FROM UsersProgress WHERE user_id = ?", (self.user_id,)).fetchone()
+        self.progress_record = ProgressTableRecord(id = res[0],
+                                                   achievments = res[1],
+                                                   exp = res[2],
+                                                   done_tasks = res[3])
         if not self.progress_record.id == None:
             with conn:
                 conn.execute("INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)", (self.user_id,))
