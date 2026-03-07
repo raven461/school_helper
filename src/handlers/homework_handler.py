@@ -23,7 +23,7 @@ class homework_states(StatesGroup):
 async def deadline_notify(user_id,task_id):
     user_homework = UserHomeworkController(user_id)
     task = list(filter(lambda elem: elem.id == task_id, user_homework.homework_records))[0]
-    return f"Внимание, на выполнение задания по предмету '{task.subject}'\
+    return f"Внимание, на выполнение задания по предмету "{task.subject}"\
                             осталось примерно {task.deadline_time // 60} минут.\
                            \n Не упусти шанс сделать!"
 
@@ -61,7 +61,7 @@ async def enter_deadline_date(message: types.Message, state: FSMContext):
     if message.from_user == None:
         logging.error("UserError: user params is empty")
         return
-    elems = message.text.strip().split('.')
+    elems = message.text.strip().split(".")
     if len(elems) != 4:
         await message.answer("Дата должна быть записана в формате ГГГГ.ММ.ДД.ЧЧ.")
         return

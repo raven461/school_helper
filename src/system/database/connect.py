@@ -1,5 +1,5 @@
 import sqlite3
-conn = sqlite3.connect('users_information.db', check_same_thread=False)
+conn = sqlite3.connect("users_information.db", check_same_thread=False)
 
 def init_db():
     with conn:
@@ -12,7 +12,7 @@ def init_db():
         
         conn.execute("""CREATE TABLE IF NOT EXISTS UsersProgress (
             user_id INTEGER PRIMARY KEY,
-            achievements TEXT DEFAULT '[]',
+            achievements TEXT DEFAULT "[]",
             exp_count REAL DEFAULT 0.0,
             count_tasks INTEGER DEFAULT 0,
             FOREIGN KEY(user_id) REFERENCES Users(user_id)

@@ -52,7 +52,7 @@ def archive_logs(log_folder_path:str, days_old:int|None=None, delete_originals:b
             print(f"Нет .log файлов старше {days_old} дней для архивации.")
             return
         log_files = filtered_files
-    if (find_newest_file(log_folder_path) == None) or (find_oldest_file(log_folder_path) == None):
+    if (find_newest_file(log_folder_path) is None) or (find_oldest_file(log_folder_path) is None):
         print(f"В папке {log_folder_path} отсутствуют файлы.")
         return
     archive_name = f"log_archive {find_oldest_file(log_folder_path).strftime('%Y-%m-%d %H-%M-%S')}   " + \
