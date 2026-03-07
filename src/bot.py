@@ -17,7 +17,6 @@ async def main():
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 if __name__ == "__main__":
-    new_log = open(LOG_FILE_PATH,"w",encoding = LOG_FILE_ENCODING)
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
