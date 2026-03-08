@@ -1,5 +1,5 @@
-from connect import get_db_connection, init_db
-from bd_dataclasses import SchoolTableRecord, UserTableRecord, HomeworkTableRecord, ProgressTableRecord
+from .connect import get_db_connection, init_db
+from .models import SchoolTableRecord, UserTableRecord, HomeworkTableRecord, ProgressTableRecord
 import json
 import time
 import asyncio
