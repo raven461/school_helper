@@ -1,5 +1,5 @@
 from aiogram import Router,F
-from aiogram.types import Message,InlineKeyboardButton,CallbackQuery
+from aiogram.types import Message,InlineKeyboardButton,CallbackQuery,FSInputFile
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
@@ -52,7 +52,7 @@ async def get_bot_logs(message: Message, state: FSMContext):
     dev_key = message.text
     if dev_key == config.dev_key.get_secret_value():
         with open(LOG_FILE_PATH,"r") as log:
-            await message.answer_document(LOG_FILE_PATH)
+            await message.answer_document(FSInputFile(LOG_FILE_PATH))
         await message.answer("Готово")
         return
     await message.answer("Неверный ключ доступа. Попробуйте ещё раз или /cancel")
