@@ -8,11 +8,19 @@ import logging
 
 #TODO: добавить функции для поддержки парсинга сайтов других школ
 class ScheduleParser:
-    async def __init__(self,school_name:str):
-        school = await SchoolController().get_school(school_name)
+    def __init__(self, school_name: str):
+        self.school_name = school_name
+        self.basic_url = ""
+        self.delta_url = ""
+        self.domain = ""
+        
+    async def initialize(self):
+        """Запрос к базе данных.
+        Не проводится в __init__, т.к. для работы с базой данных используется библиотека aiosqlite, а
+        Python не поддерживает асинхронные конструкторы классов"""
+        school = await SchoolController().get_school(self.school_name)
         if school is None:
-            logging.error(f"NoRecordError: in table Schools isn't records with name == {school_name}")
-            return
+            raise ValueError(f"School {self.school_name} not found")
         self.basic_url = school.base_schedule_url
         self.delta_url = school.delta_schedule_url
         self.domain = school.domain_url

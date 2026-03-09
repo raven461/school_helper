@@ -13,6 +13,7 @@ import re
 
 router = Router()
 parser = ScheduleParser("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
+asyncio.run(parser.initialize())
 
 async def update_data_task():
     """Фоновая задача для обновления данных по расписанию каждую минуту"""
