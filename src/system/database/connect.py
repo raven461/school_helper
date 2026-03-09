@@ -5,14 +5,14 @@ def get_db_connection():
 
 async def init_db():
     async with get_db_connection() as conn:
-        conn.execute("""CREATE TABLE IF NOT EXISTS Users (
+        await conn.execute("""CREATE TABLE IF NOT EXISTS Users (
             user_id INTEGER PRIMARY KEY,
             full_name TEXT,
             school TEXT,
             grade TEXT
         );""")
         
-        conn.execute("""CREATE TABLE IF NOT EXISTS UsersProgress (
+        await conn.execute("""CREATE TABLE IF NOT EXISTS UsersProgress (
             user_id INTEGER PRIMARY KEY,
             achievements TEXT DEFAULT '[]',
             exp_count REAL DEFAULT 0.0,
@@ -20,7 +20,7 @@ async def init_db():
             FOREIGN KEY(user_id) REFERENCES Users(user_id)
         );""")
 
-        conn.execute("""CREATE TABLE IF NOT EXISTS UsersHomeWork(
+        await conn.execute("""CREATE TABLE IF NOT EXISTS UsersHomeWork(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             subject_id TEXT,
@@ -31,7 +31,7 @@ async def init_db():
             FOREIGN KEY(user_id) REFERENCES Users(user_id)
         );""")
 
-        conn.execute("""CREATE TABLE IF NOT EXISTS Schools(
+        await conn.execute("""CREATE TABLE IF NOT EXISTS Schools(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             schedule_url TEXT,
@@ -40,7 +40,7 @@ async def init_db():
         );""")
 async def del_db():
     async with get_db_connection() as conn:
-        conn.execute("""DROP TABLE IF EXISTS Users;
+        await conn.execute("""DROP TABLE IF EXISTS Users;
             DROP TABLE IF EXISTS UsersProgress;
             DROP TABLE IF EXISTS UsersHomeWork;
             DROP TABLE IF EXISTS Schools;""")
