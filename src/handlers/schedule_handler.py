@@ -26,7 +26,6 @@ async def update_data_task():
         await asyncio.sleep(60)
 
 def format_schedule_view(day_name, user_class:str, schedule_dict, delta_list):
-    #TODO:обработка комментариев "нет ... урока"
     lessons = schedule_dict.get(day_name, [])
     day_deltas = [d for d in delta_list if d['day'] == day_name]
 
@@ -37,16 +36,15 @@ def format_schedule_view(day_name, user_class:str, schedule_dict, delta_list):
     if not lessons and not day_deltas:
         body = "<i>Уроков не найдено или выходной</i>\n"
     else:
+        none_lessons = []
         for i, subject in enumerate(lessons, 1):
             change = next((d for d in day_deltas if str(d['lesson']) == str(i)), None)
             if change:
-                if ("Нет" in change["comment"]) and ("урока" in change["comment"]):
-                    classes = re.findall(r"\d+",change["comment"])
-                    if i in classes:
-                        body += "✅ <b>{i}. Нет урока<b>\n"
+                if ("Нет" in change["comment"]) and ("урок" in change["comment"]):
+                    none_lessons.append([int(x) for x in re.findall(r"\d+", change["comment"])])
                 body += f"❌ <s>{i}. {subject}</s>\n"
-                if change["room"] == None or change["comment"] == None:
-                    body += "✅ <b>Нет урока<b>\n"
+                if change["room"] is None or change["comment"] is None or i in none_lessons:
+                    body += "✅ <b>Нет урока</b>\n"
                 body += f"✅ <b>{i}. {change.get('subject', 'Замена')}</b> | каб. {change['room']}\n"
             else:
                 body += f"○ {i}. {subject}\n"
