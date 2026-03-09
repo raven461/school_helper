@@ -55,7 +55,7 @@ class UserHomeworkController:
         asyncio.run(self.update_user_information())
 
     async def update_user_information(self):
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             async with conn.execute(
                 "SELECT * FROM UsersHomeWork WHERE user_id = ?",
                 (self.user_id,)
@@ -74,7 +74,7 @@ class UserHomeworkController:
                     self.homework_records.append(record)
 
     async def get_task_id(self, subject_id: str, task_text: str) -> int | None:
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             async with conn.execute(
                 "SELECT id FROM UsersHomeWork WHERE user_id = ? AND subject_id = ? AND task_text = ?",
                 (self.user_id, subject_id, task_text)
@@ -84,7 +84,7 @@ class UserHomeworkController:
 
     async def add_task(self, subject_id: str, task_text: str, deadline_ts: int, reminder_delta_minutes: int = 60):
         reminder_time = deadline_ts - (reminder_delta_minutes * 60)
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             await conn.execute(
                 "INSERT INTO UsersHomeWork (user_id, subject_id, task_text, deadline, reminder_time, status) "
                 "VALUES (?, ?, ?, ?, ?, 0)",
@@ -94,7 +94,7 @@ class UserHomeworkController:
         await self.update_user_information()
 
     async def set_status_complete(self, task_id: int):
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             await conn.execute(
                 "UPDATE UsersHomeWork SET status = 1 WHERE id = ? AND user_id = ?",
                 (task_id, self.user_id)
@@ -111,7 +111,7 @@ class UserHomeworkController:
         return active_tasks
 
     async def delete_task(self, task_id: int):
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             await conn.execute(
                 "DELETE FROM UsersHomeWork WHERE id = ? AND user_id = ?",
                 (task_id, self.user_id)
@@ -129,7 +129,7 @@ class UserHomeworkController:
         return result
     
     async def clear_reminder(self, task_id: int):
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             await conn.execute(
                 "UPDATE UsersHomeWork SET reminder_time = 0 WHERE id = ?",
                 (task_id,)
@@ -216,7 +216,7 @@ class SchoolController:
         pass
 
     async def add_school(self, school_name: str, base_url: str, delta_url: str, ):
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             await conn.execute(
                 "INSERT INTO Schools (school_name, base_url, delta_url,exams) VALUES (?, ?, ?,'[]')",
                 (school_name, base_url, delta_url,)
@@ -224,7 +224,7 @@ class SchoolController:
             await conn.commit()
 
     async def delete_school(self, id: int):
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             await conn.execute(
                 "DELETE FROM Schools WHERE id = ?",
                 (id)
@@ -232,7 +232,7 @@ class SchoolController:
             await conn.commit()
 
     async def get_all_schools(self) -> list[SchoolTableRecord]:
-        async with await get_db_connection() as conn:
+        async with get_db_connection() as conn:
             async with conn.execute("SELECT * FROM Schools") as cursor:
                 school_records = await cursor.fetchall()
         schools = []
