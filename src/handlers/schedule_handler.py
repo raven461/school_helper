@@ -1,8 +1,8 @@
 from aiogram import Router,F
-from aiogram.types import Message,InlineKeyboardButton,CallbackQuery
+from aiogram.types import Message,CallbackQuery
 from aiogram.filters import Command
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from datetime import datetime
+from .keyboards.keyboards import get_dynamic_days_keyboard
 from system.database.enties import UserController
 from system.shedule_parser import ScheduleParser
 from system.exam_parser import ExamsParser
@@ -50,33 +50,6 @@ def format_schedule_view(day_name, user_class:str, schedule_dict, delta_list):
                 body += f"○ {i}. {subject}\n"
 
     return header + line + body
-
-def get_dynamic_days_keyboard():
-    builder = InlineKeyboardBuilder()
-    today_idx = datetime.now().weekday() 
-    
-    days_names = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
-    days_db = ["ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА", "ВОСКРЕСЕНЬЕ"]
-    if today_idx < 6:
-        builder.add(InlineKeyboardButton(
-            text=f"Сегодня ({days_names[today_idx]})", 
-            callback_data=f"day_{days_db[today_idx]}"
-        ))
-    tomorrow_idx = (today_idx + 1) % 7
-    if tomorrow_idx < 6:
-        builder.add(InlineKeyboardButton(
-            text=f"Завтра ({days_names[tomorrow_idx]})", 
-            callback_data=f"day_{days_db[tomorrow_idx]}"
-        ))
-    for i in range(6):
-        if i != today_idx and i != tomorrow_idx:
-            builder.add(InlineKeyboardButton(
-                text=days_names[i], 
-                callback_data=f"day_{days_db[i]}"
-            ))
-            
-    builder.adjust(1, 1, 2) 
-    return builder.as_markup()
 
 @router.callback_query(F.data.startswith("day_"))
 async def handle_day(callback: CallbackQuery):

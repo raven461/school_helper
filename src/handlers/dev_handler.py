@@ -1,9 +1,9 @@
 from aiogram import Router,F
-from aiogram.types import Message,InlineKeyboardButton,CallbackQuery,FSInputFile
+from aiogram.types import Message,CallbackQuery,FSInputFile
 from aiogram.filters import Command
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
+from .keyboards.keyboards import get_admin_keyboard
 from config import config
 from conf.logging.file_opening import LOG_FILE_PATH
 from system.database.connect import del_db
@@ -15,28 +15,6 @@ class dev_states(StatesGroup):
     drop_db = State()
     send_logs_archives = State()
     read_email = State()
-
-def get_admin_keyboard():
-    builder = InlineKeyboardBuilder()
-    builder.add(InlineKeyboardButton(
-            text="Получить файл логов", 
-            callback_data="logs"
-        ))
-    builder.add(InlineKeyboardButton(
-            text="Получить состояние сервера", 
-            callback_data="server_info"
-        ))
-    builder.add(InlineKeyboardButton(
-            text="Отправить файл логов на почту", 
-            callback_data="send_logs"
-        ))
-    builder.add(InlineKeyboardButton(
-            text="Очистить базу данных", 
-            callback_data="drop_db"
-        ))
-    
-    builder.adjust(2, 1, 1) 
-    return builder.as_markup()
 
 @router.message(Command("admin_mode"))
 async def admin_pannel(message: Message):
