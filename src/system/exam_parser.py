@@ -8,17 +8,23 @@ t = datetime.date.today()
 halfyear = (2,1)[t.month > 9]
 year = (t + relativedelta(months=-6)).year
 class ExamsParser:
-    async def __init__(self,school_name:str):
-        self.school = await SchoolController().get_school(school_name)
-        if self.school is None:
-            logging.error(f"NoRecordError: in table Schools isn't school with name == {school_name}")
-            return
-        self.main_url = self.school.domain_url
+    def __init__(self, school_name: str):
+        self.school = None
+        self.main_url = ""
         #TODO:адаптировать получение имен файлов с расписанием экзаменов.
         #Возможно, добавить дополнительные поля в базу данных или настроить получение по типу элеметнта на сайте школы.
         self.exams = [f"{halfyear}_polugodie_na_{year}-{year+1}_uchebnyj_god_srednij_uroven",
                       f"{halfyear}_polugodie_na_{year}-{year+1}_uchebnyj_god_osnovnaya_shkola",
                       f"{halfyear}_polugodie_na_{year}-{year+1}_uchebnyj_god_nachalnaya_shkola"]
+    @classmethod
+    async def create(cls, school_name):
+        obj = cls(school_name)
+        obj.school = await SchoolController().get_school(school_name)
+        if obj.school is None:
+            logging.error(f"NoRecordError: in table Schools isn't school with name == {school_name}")
+            return
+        obj.main_url = obj.school.domain_url
+
     def returnFilename(self,user_class):
         if user_class < 5:
             name = self.main_url + self.exams[2]

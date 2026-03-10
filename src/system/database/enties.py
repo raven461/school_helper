@@ -5,13 +5,18 @@ import time
 import asyncio
 import logging
 
-asyncio.run(init_db())
+
 
 class UserController:
     def __init__(self, user_id):
         self.user_id = user_id
         asyncio.run(self.update_user_information())
 
+    @classmethod
+    async def create(cls,user_id):
+        obj = cls(user_id)
+        await obj.update_user_information()
+        return obj
     async def update_user_information(self):
         async with get_db_connection() as conn:
             async with conn.execute(
@@ -52,7 +57,12 @@ class UserHomeworkController:
     def __init__(self, user_id):
         self.user_id = user_id
         self.homework_records: list[HomeworkTableRecord] = []
-        asyncio.run(self.update_user_information())
+
+    @classmethod
+    async def create(cls,user_id):
+        obj = cls(user_id)
+        await obj.update_user_information()
+        return obj
 
     async def update_user_information(self):
         async with get_db_connection() as conn:
@@ -215,11 +225,11 @@ class SchoolController:
     def __init__(self):
         pass
 
-    async def add_school(self, school_name: str, base_url: str, delta_url: str, ):
+    async def add_school(self, school_name: str, base_url: str, delta_url: str, exams_urls: list[str]):
         async with get_db_connection() as conn:
             await conn.execute(
-                "INSERT INTO Schools (school_name, base_url, delta_url,exams) VALUES (?, ?, ?,'[]')",
-                (school_name, base_url, delta_url,)
+                "INSERT INTO Schools (school_name, base_url, delta_url,exams) VALUES (?, ?, ?,?)",
+                (school_name, base_url, delta_url,json.dumps(exams_urls, ensure_ascii=False))
             )
             await conn.commit()
 

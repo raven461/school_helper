@@ -12,10 +12,10 @@ async def update_achivments():
          
 @router.message(Command("achievements"))
 async def get_achievements(message: Message):
-    if message.from_user == None:
+    if message.from_user is None:
         logging.error("UserError: user params is empty")
         return
-    user_progress = UserProgressController(message.from_user.id)
+    user_progress = await UserProgressController().create(message.from_user.id)
     try:
         await message.answer("\n".join(user_progress.get_user_achievements()))
     except:
@@ -25,10 +25,10 @@ async def get_achievements(message: Message):
 
 @router.message(Command("profile"))
 async def profile(message: Message):
-    if message.from_user == None:
+    if message.from_user is None:
         logging.error("UserError: user params is empty")
         return
-    user_progress = UserProgressController(message.from_user.id)
+    user_progress = await UserProgressController().create(message.from_user.id)
     await message.answer("Name: " + message.from_user.first_name)
-    await message.answer("Exp: "+ str(user_progress.exp))
+    await message.answer("Exp: " + str(user_progress.exp))
     await message.answer("Готово")

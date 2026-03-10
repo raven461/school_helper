@@ -13,17 +13,19 @@ class ScheduleParser:
         self.basic_url = ""
         self.delta_url = ""
         self.domain = ""
-        
-    async def initialize(self):
+
+    @classmethod
+    async def create(cls, school_name: str):
+        obj = cls(school_name)
         """Запрос к базе данных.
         Не проводится в __init__, т.к. для работы с базой данных используется библиотека aiosqlite, а
         Python не поддерживает асинхронные конструкторы классов"""
-        school = await SchoolController().get_school(self.school_name)
+        school = await SchoolController().get_school(school_name)
         if school is None:
-            raise ValueError(f"School {self.school_name} not found")
-        self.basic_url = school.base_schedule_url
-        self.delta_url = school.delta_schedule_url
-        self.domain = school.domain_url
+            raise ValueError(f"School {school_name} not found")
+        obj.basic_url = school.base_schedule_url
+        obj.delta_url = school.delta_schedule_url
+        obj.domain = school.domain_url
 
     async def update_schedule(self):
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -37,7 +39,7 @@ class ScheduleParser:
                 return True
             except Exception: return False
 
-    def _process_excel(self, target_class: str):
+    def process_excel(self, target_class: str):
         try:
             df = pd.read_excel(BytesIO(self.data))
             df.iloc[:, 0] = df.iloc[:, 0].ffill()
@@ -65,7 +67,7 @@ class ScheduleParser:
 
     async def get_schedule(self, target_class: str):
         if not self.data: return "Данные не загружены"
-        return await asyncio.to_thread(self._process_excel, target_class)
+        return await asyncio.to_thread(self.process_excel, target_class)
 
     async def update_delta_schedule(self):
         async with httpx.AsyncClient(timeout=10.0) as client:

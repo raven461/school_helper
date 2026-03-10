@@ -77,7 +77,7 @@ async def process_class(message: types.Message, state: FSMContext):
 @router.message(registration.choosing_school)
 async def process_school(message: types.Message, state: FSMContext):
     state_data = await state.get_data()
-    if message.from_user == None:
+    if message.from_user is None:
         logging.error("UserNameError: user name is empty")
         return
     await UserController.register_user(
