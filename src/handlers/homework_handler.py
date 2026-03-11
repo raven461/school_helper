@@ -71,7 +71,16 @@ async def enter_deadline_date(message: types.Message, state: FSMContext):
     except ValueError:
         await message.answer("Неверный формат даты. Используйте ГГГГ.ММ.ДД.ЧЧ (например: 2024.12.25.18)")
         return
-
+    
+    state_data = await state.get_data()
+    user_homework = UserHomeworkController(message.from_user.id)
+    
+    await user_homework.add_task(
+        subject_id=state_data.get("lesson"),
+        task_text=state_data.get("task_text"),
+        deadline_ts = int(deadline_date.timestamp())
+    )
+    
     await message.answer("Задание зарегистрировано.\n")
     await state.clear()
 
@@ -84,7 +93,7 @@ async def homework(message: types.Message):
     if message.from_user is None:
         logging.error("UserError: user params is empty")
         return
-    user_homework = await UserHomeworkController().create(message.from_user.id)
+    user_homework = await UserHomeworkController.create(message.from_user.id)
     tasks = await user_homework.get_active_tasks()
     if not tasks:
         await message.answer("У вас нет активных заданий")
@@ -117,7 +126,7 @@ async def enter_text(message: types.Message, state: FSMContext):
     if message.text is None:
         await message.answer("Повторите ввод")
         return
-    user_homework = await UserHomeworkController().create(message.from_user.id)
+    user_homework = await UserHomeworkController.create(message.from_user.id)
     user_progress = await UserProgressController.create(message.from_user.id)
     state_data = await state.get_data()
     try:
