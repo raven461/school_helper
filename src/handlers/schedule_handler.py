@@ -91,7 +91,7 @@ async def schedule(message: Message):
 
 @router.message(Command("today"))
 async def today(message: Message):
-    if message.from_user == None:
+    if message.from_user is None:
         logging.error("BotUserError: user params is empty")
         return
     user = await UserController.create(message.from_user.id)
@@ -109,7 +109,7 @@ async def today(message: Message):
     )
 @router.message(Command("exams"))
 async def exams(message: Message):
-    if message.from_user == None:
+    if message.from_user is None:
         logging.error("BotUserError: user params is empty")
         return
     user = await UserController.create(message.from_user.id)

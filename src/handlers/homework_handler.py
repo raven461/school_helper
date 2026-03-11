@@ -1,6 +1,4 @@
 from aiogram import Router, types, F
-from aiogram.types import InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -73,7 +71,7 @@ async def enter_deadline_date(message: types.Message, state: FSMContext):
         return
     
     state_data = await state.get_data()
-    user_homework = UserHomeworkController(message.from_user.id)
+    user_homework = await UserHomeworkController.create(message.from_user.id)
     
     await user_homework.add_task(
         subject_id=state_data.get("lesson"),

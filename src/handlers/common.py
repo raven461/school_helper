@@ -13,7 +13,7 @@ class registration(StatesGroup):
 
 @router.message(Command("start"))
 async def cmd_start(message: types.Message):
-    if message.from_user == None:
+    if message.from_user is None:
         logging.error("UserNameError: user name is empty")
         return
     await message.answer(
@@ -50,7 +50,7 @@ async def help_command(message: types.Message):
 
 @router.message(Command("reg"))
 async def start_reg(message: types.Message, state: FSMContext):
-    if message.from_user == None:
+    if message.from_user is None:
         logging.error("UserNameError: user name is empty")
         return
     user_info = UserController(message.from_user.id)
@@ -62,7 +62,7 @@ async def start_reg(message: types.Message, state: FSMContext):
 
 @router.message(registration.choosing_class)
 async def process_class(message: types.Message, state: FSMContext):
-    if message.text == None:
+    if message.text is None:
         logging.warning("MessageTextWaring: message is empty")
         return
     user_class = message.text.lower().strip().replace(" ", "")

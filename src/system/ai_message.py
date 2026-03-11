@@ -2,6 +2,8 @@ from openai import AsyncOpenAI
 from config import config
 import logging
 
+MAX_TOKENS = 2000
+
 class AI:
     def __init__(self):
         ai_token = config.ai_token.get_secret_value()
@@ -32,9 +34,9 @@ class AI:
                     {"role": "user", "content": quest}
                 ],
                 temperature=0.3,
-                max_tokens=500
+                max_tokens=MAX_TOKENS
             )
-            if response.choices[0].message.content == None: 
+            if response.choices[0].message.content is None: 
                 logging.error("AI message is empty")
                 return "Нейросеть задумалась. Попробуй еще раз через минуту."
             return response.choices[0].message.content.strip()

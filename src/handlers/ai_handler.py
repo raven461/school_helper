@@ -13,7 +13,7 @@ ai = AI()
 
 class Text(StatesGroup):
     read_task = State()
-@router.message(Command("cancel"))
+
 @router.message(F.text.casefold() == "отмена")
 async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
@@ -28,9 +28,6 @@ async def start_solve(message: types.Message, state: FSMContext):
 #TODO:сделать обработку изображений в запросах   
 @router.message(Text.read_task)
 async def process_ask_ai(message: types.Message, state: FSMContext):
-    if message.bot == None:
-        logging.error("BotError: the bot is not unknown.")
-        return
     async with ChatActionSender.typing(bot=message.bot, chat_id=message.chat.id):
         try:
             answer = await ai.get_request_to_ai(await text_from_tg_photo(message.bot,message.photo[-1]) +
