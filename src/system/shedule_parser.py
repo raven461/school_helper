@@ -10,9 +10,7 @@ import logging
 class ScheduleParser:
     def __init__(self, school_name: str):
         self.school_name = school_name
-        self.basic_url = ""
-        self.delta_url = ""
-        self.domain = ""
+        self.basic_url,self.delta_url,self.domain,self.exams  = ""
 
     @classmethod
     async def create(cls, school_name: str):
@@ -22,10 +20,13 @@ class ScheduleParser:
         Python не поддерживает асинхронные конструкторы классов"""
         school = await SchoolController().get_school(school_name)
         if school is None:
-            raise ValueError(f"School {school_name} not found")
+            logging.error(f"ValueError: School {school_name} not found at Schools")
+            raise ValueError(f"School {school_name} not found at Schools")
         obj.basic_url = school.base_schedule_url
         obj.delta_url = school.delta_schedule_url
         obj.domain = school.domain_url
+        obj.exams = school.exams_urls
+        return obj
 
     async def update_schedule(self):
         async with httpx.AsyncClient(timeout=10.0) as client:

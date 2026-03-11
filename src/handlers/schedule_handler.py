@@ -12,10 +12,9 @@ import time
 import re
 
 router = Router()
-parser = ScheduleParser("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
-asyncio.run(parser.initialize())
 
 async def update_data_task():
+    parser = await ScheduleParser.create("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
     """Фоновая задача для обновления данных по расписанию каждую минуту"""
     while True:
         try:
@@ -54,7 +53,8 @@ def format_schedule_view(day_name, user_class:str, schedule_dict, delta_list):
 
 @router.callback_query(F.data.startswith("day_"))
 async def handle_day(callback: CallbackQuery):
-    _ = time.time()
+    parser = await ScheduleParser.create("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
+    timestamp = time.time()
     if callback.data is None or callback.message is None:
         logging.error("Empty callback data")
         return
@@ -74,7 +74,7 @@ async def handle_day(callback: CallbackQuery):
         
     all_deltas = parser.get_delta(grade)
     text = format_schedule_view(selected_day, grade, full_schedule, all_deltas)
-    logging.info("Schedule request time:"+str(time.time()-_))
+    logging.info("Schedule request time:"+str(time.time() - timestamp))
     await callback.answer()
     try:
         await callback.message.edit_text(
@@ -94,7 +94,8 @@ async def today(message: Message):
     if message.from_user == None:
         logging.error("BotUserError: user params is empty")
         return
-    user = UserController(message.from_user.id)
+    user = await UserController.create(message.from_user.id)
+    parser = await ScheduleParser.create("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
     today = datetime.now().weekday() 
     days_db = ["ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА", "ВОСКРЕСЕНЬЕ"]
     grade = user.user_record.grade
@@ -111,6 +112,6 @@ async def exams(message: Message):
     if message.from_user == None:
         logging.error("BotUserError: user params is empty")
         return
-    user = UserController(message.from_user.id)
-    parser = ExamsParser("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
+    user = await UserController.create(message.from_user.id)
+    parser = await ExamsParser.create("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
     await message.answer_document(parser.returnFilename(user.grade_number))
