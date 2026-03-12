@@ -29,7 +29,8 @@ class UserController:
                         id=res[0],
                         name=res[1],
                         school_name=res[2],
-                        grade=res[3]
+                        grade=res[3],
+                        type=res[4]
                     )
                 else:
                     logging.error("RecordFoundError: user record not found")
@@ -42,7 +43,7 @@ class UserController:
         return int((self.user_record.grade)[0]) if self.is_register() else None
 
     @staticmethod
-    async def register_user(user_id, nickname, school, grade):
+    async def register_user(user_id:int, nickname:str, school:str, grade:str, user_type:str):
         async with get_db_connection() as conn:
             await conn.execute(
                 "INSERT OR REPLACE INTO Users (user_id, full_name, school, grade) VALUES (?,?,?,?)",
@@ -79,7 +80,7 @@ class UserHomeworkController:
                         text=raw[3],
                         deadline_time=raw[4],
                         reminder_time=raw[5],
-                        is_done=raw[6]
+                        is_done=bool(raw[6])
                     )
                     self.homework_records.append(record)
 
@@ -149,7 +150,12 @@ class UserHomeworkController:
 class UserProgressController:
     def __init__(self, user_id):
         self.user_id = user_id
-        asyncio.run(self.update_user_information())
+        
+    @classmethod
+    async def create(cls,user_id):
+        obj = cls(user_id)
+        await obj.update_user_information()
+        return obj
 
     async def update_user_information(self):
         async with get_db_connection() as conn:

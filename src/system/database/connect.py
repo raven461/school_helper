@@ -9,7 +9,8 @@ async def init_db():
             user_id INTEGER PRIMARY KEY,
             full_name TEXT,
             school TEXT,
-            grade TEXT
+            grade TEXT,
+            type TEXT
         );""")
         
         await conn.execute("""CREATE TABLE IF NOT EXISTS UsersProgress (

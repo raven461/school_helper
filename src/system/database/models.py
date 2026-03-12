@@ -6,6 +6,7 @@ class UserTableRecord(BaseModel):
     name: str
     school_name: str
     grade: str
+    type: str
 
 
 class ProgressTableRecord(BaseModel):
