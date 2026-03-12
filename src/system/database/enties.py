@@ -1,16 +1,12 @@
-from .connect import get_db_connection, init_db
+from .connect import get_db_connection
 from .models import SchoolTableRecord, UserTableRecord, HomeworkTableRecord, ProgressTableRecord
 import json
 import time
-import asyncio
 import logging
-
-
 
 class UserController:
     def __init__(self, user_id):
         self.user_id = user_id
-        asyncio.run(self.update_user_information())
 
     @classmethod
     async def create(cls,user_id):
@@ -46,13 +42,14 @@ class UserController:
     async def register_user(user_id:int, nickname:str, school:str, grade:str, user_type:str):
         async with get_db_connection() as conn:
             await conn.execute(
-                "INSERT OR REPLACE INTO Users (user_id, full_name, school, grade) VALUES (?,?,?,?)",
-                (user_id, nickname, school, grade)
+                "INSERT OR REPLACE INTO Users (user_id, full_name, school, grade, type) VALUES (?,?,?,?,?)",
+                (user_id, nickname, school, grade,user_type)
             )
-            await conn.execute(
-                "INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)",
-                (user_id,)
-            )
+            if user_type == "pupil":
+                await conn.execute(
+                    "INSERT OR IGNORE INTO UsersProgress (user_id) VALUES (?)",
+                    (user_id,)
+                )
             await conn.commit()
 class UserHomeworkController:
     def __init__(self, user_id):
