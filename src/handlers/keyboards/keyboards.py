@@ -2,6 +2,19 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 from datetime import datetime
 
+def get_user_type_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(
+            text="Ученик", 
+            callback_data="type_pupil"
+        ))
+    builder.add(InlineKeyboardButton(
+            text="Учитель", 
+            callback_data="type_teacher"
+        ))
+    builder.adjust(1,1) 
+    return builder.as_markup()
+
 def get_admin_keyboard():
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(
@@ -23,6 +36,7 @@ def get_admin_keyboard():
     
     builder.adjust(2, 1, 1) 
     return builder.as_markup()
+
 
 def get_dynamic_days_keyboard():
     builder = InlineKeyboardBuilder()
