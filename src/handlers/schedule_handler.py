@@ -14,7 +14,8 @@ import re
 router = Router()
 
 async def update_data_task():
-    parser = await ScheduleParser.create("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
+    user = await UserController.create(message.from_user.id)
+    parser = await ScheduleParser.create(user.user_record.school_name)
     """Фоновая задача для обновления данных по расписанию каждую минуту"""
     while True:
         try:
@@ -53,13 +54,14 @@ def format_schedule_view(day_name, user_class:str, schedule_dict, delta_list):
 
 @router.callback_query(F.data.startswith("day_"))
 async def handle_day(callback: CallbackQuery):
-    parser = await ScheduleParser.create("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
+    user = await UserController.create(callback.from_user.id)
+    parser = await ScheduleParser.create(user.user_record.school_name)
     timestamp = time.time()
     if callback.data is None or callback.message is None:
         logging.error("Empty callback data")
         return
     selected_day = callback.data.split("_")[1]
-    user = UserController(callback.from_user.id)
+    user = await UserController.create(callback.from_user.id)
     grade = str(user.user_record.grade)
     
     if not grade:
@@ -95,7 +97,7 @@ async def today(message: Message):
         logging.error("BotUserError: user params is empty")
         return
     user = await UserController.create(message.from_user.id)
-    parser = await ScheduleParser.create("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
+    parser = await ScheduleParser.create(user.user_record.school_name)
     today = datetime.now().weekday() 
     days_db = ["ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА", "ВОСКРЕСЕНЬЕ"]
     grade = user.user_record.grade
@@ -113,5 +115,5 @@ async def exams(message: Message):
         logging.error("BotUserError: user params is empty")
         return
     user = await UserController.create(message.from_user.id)
-    parser = await ExamsParser.create("ГБОУ Лицей №419 Санкт-Петербурга имени К.М. Калманова")
+    parser = await ExamsParser.create(user.user_record.school_name)
     await message.answer_document(parser.returnFilename(user.grade_number))
