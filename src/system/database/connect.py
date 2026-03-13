@@ -35,13 +35,15 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS Schools(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
+            domain__url TEXT,               
             schedule_url TEXT,
             delta_schedule_url TEXT,
             exams_urls TEXT[]
         );""")
 async def del_db():
     async with get_db_connection() as conn:
-        await conn.execute("""DROP TABLE IF EXISTS Users;
-            DROP TABLE IF EXISTS UsersProgress;
-            DROP TABLE IF EXISTS UsersHomeWork;
-            DROP TABLE IF EXISTS Schools;""")
+        await conn.execute("DROP TABLE IF EXISTS Users;")
+        await conn.execute("DROP TABLE IF EXISTS UsersProgress;")
+        await conn.execute("DROP TABLE IF EXISTS UsersHomeWork;")
+        await conn.execute("DROP TABLE IF EXISTS Schools;")
+        await conn.commit()
