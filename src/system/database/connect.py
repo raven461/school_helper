@@ -35,7 +35,7 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS Schools(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
-            domain__url TEXT,               
+            domain_url TEXT,               
             schedule_url TEXT,
             delta_schedule_url TEXT,
             exams_urls TEXT[]
