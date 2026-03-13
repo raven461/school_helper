@@ -56,7 +56,7 @@ async def start_reg(message: Message, state: FSMContext):
     if message.from_user is None:
         logging.error("UserNameError: user name is empty")
         return
-    user_info = UserController(message.from_user.id)
+    user_info = await UserController.create(message.from_user.id)
     if user_info.is_register():
         await message.answer(f"Вы уже в базе. Класс: {user_info.user_record.grade}\n"
                          "Для смены введите класс заново или /cancel")
