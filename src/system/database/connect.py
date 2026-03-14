@@ -40,6 +40,8 @@ async def init_db():
             delta_schedule_url TEXT,
             exams_urls TEXT[]
         );""")
+        await conn.commit()
+
 async def del_db():
     async with get_db_connection() as conn:
         await conn.execute("DROP TABLE IF EXISTS Users;")

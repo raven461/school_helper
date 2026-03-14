@@ -13,6 +13,7 @@ class UserController:
         obj = cls(user_id)
         await obj.update_user_information()
         return obj
+
     async def update_user_information(self):
         async with get_db_connection() as conn:
             async with conn.execute(
@@ -22,11 +23,11 @@ class UserController:
                 res = await cursor.fetchone()
                 if res:
                     self.user_record = UserTableRecord(
-                        id=res[0],
-                        name=res[1],
-                        school_name=res[2],
-                        grade=res[3],
-                        type=res[4]
+                        id=int(res[0]),
+                        name=str(res[1]),
+                        school_name=str(res[2]),
+                        grade=str(res[3]),
+                        type=str(res[4])
                     )
                 else:
                     logging.error("RecordFoundError: user record not found")
@@ -71,12 +72,12 @@ class UserHomeworkController:
                 self.homework_records.clear()
                 for raw in await cursor.fetchall():
                     record = HomeworkTableRecord(
-                        id=raw[0],
-                        user_id=self.user_id,
-                        subject=raw[2],
-                        text=raw[3],
-                        deadline_time=raw[4],
-                        reminder_time=raw[5],
+                        id=int(raw[0]),
+                        user_id=int(self.user_id),
+                        subject=str(raw[2]),
+                        text=str(raw[3]),
+                        deadline_time=int(raw[4]),
+                        reminder_time=int(raw[5]),
                         is_done=bool(raw[6])
                     )
                     self.homework_records.append(record)
@@ -163,8 +164,8 @@ class UserProgressController:
                 res = await cursor.fetchone()
                 if res:
                     self.progress_record = ProgressTableRecord(
-                        id=res[0],
-                        achievments=res[1],
+                        id=int(res[0]),
+                        achievments=json.loads(res[1]),
                         exp=res[2],
                         done_tasks=res[3]
                     )
@@ -252,12 +253,12 @@ class SchoolController:
         for record in school_records:
             schools.append(
                 SchoolTableRecord(
-                    id=record[0],
-                    name=record[1],
-                    domain_url=record[2],
-                    base_schedule_url=record[3],
-                    delta_schedule_url=record[4],
-                    exams_urls=record[5]
+                    id=int(record[0]),
+                    name=str(record[1]),
+                    domain_url=str(record[2]),
+                    base_schedule_url=str(record[3]),
+                    delta_schedule_url=str(record[4]),
+                    exams_urls=json.loads(record[5])
                 )
             )
         return schools
