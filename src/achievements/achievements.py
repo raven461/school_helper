@@ -18,7 +18,7 @@ class Achievements:
         prog = await UserProgressController().create(user_id)
         hw = await UserHomeworkController().create(user_id)
         
-        current_ids = prog.get_user_achievements()
+        current_ids = prog.achievments
         new_unlocked = []
 
         for ach in self.available_achievements:

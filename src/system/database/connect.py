@@ -38,7 +38,7 @@ async def init_db():
             domain_url TEXT,               
             schedule_url TEXT,
             delta_schedule_url TEXT,
-            exams_urls TEXT[]
+            exams_urls TEXT DEFAULT '[]'
         );""")
         await conn.commit()
 

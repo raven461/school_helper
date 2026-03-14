@@ -205,7 +205,8 @@ class UserProgressController:
             await conn.commit()
         await self.update_user_information()
 
-    def get_user_achievements(self) -> list:
+    @property
+    def achievements(self) -> list:
         try:
             return json.loads(str(self.progress_record.achievments))
         except:
