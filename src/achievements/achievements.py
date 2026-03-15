@@ -4,7 +4,7 @@ import ast
 
 class Achievements:
     def __init__(self):
-        with open("achievements.json","r", encoding="utf-8") as achievements:
+        with open("achievements_list.json","r", encoding="utf-8") as achievements:
             self.available_achievements = json.load(achievements)
         self.ach_map = {ach["id"]: ach for ach in self.available_achievements}
 
@@ -15,10 +15,10 @@ class Achievements:
         return self.ach_map.get(ach_id, {}).get("desc", "Описание отсутствует")
 
     async def update(self, user_id):
-        prog = await UserProgressController().create(user_id)
-        hw = await UserHomeworkController().create(user_id)
+        prog = await UserProgressController.create(user_id)
+        hw = await UserHomeworkController.create(user_id)
         
-        current_ids = prog.achievments
+        current_ids = prog.achievements
         new_unlocked = []
 
         for ach in self.available_achievements:
