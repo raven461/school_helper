@@ -3,6 +3,9 @@ import json
 import ast
 
 class Achievements:
+    #TODO:изменить условия обработки получения достижений
+    #TODO:вынести обработку достижений в отдельную базу данных
+    #Тогда в поле ahievements таблицы UserProgress будут храниться только id достижений
     def __init__(self):
         with open("achievements_list.json","r", encoding="utf-8") as achievements:
             self.available_achievements = json.load(achievements)

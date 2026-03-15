@@ -18,9 +18,15 @@
         "check": "lambda p, h: p.sucesfull_tasks >= 50"
     },
     "paranoidal":{
-        "name": "Обеспокоенный",
+        "name": "Ждущий беды",
         "desc": "Посмотрел расписание контрольных работ 5 раз",
         "reward_exp": 40.0,
+        "check": "lambda p, h: p.sucesfull_tasks >= 5"
+    },
+    "ai_asker":{
+        "name": "Так много вопросов, так мало ответов",
+        "desc": "Спросил ИИ-консультанта 10 раз",
+        "reward_exp": 100.0,
         "check": "lambda p, h: p.sucesfull_tasks >= 5"
     }
 }
