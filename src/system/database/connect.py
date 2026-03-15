@@ -1,7 +1,7 @@
 import aiosqlite
 
-def get_db_connection():
-    return aiosqlite.connect('users_information.db')
+def get_db_connection(adress = "user_information.db"):
+    return aiosqlite.connect(adress)
 
 async def init_db():
     async with get_db_connection() as conn:
@@ -10,7 +10,7 @@ async def init_db():
             full_name TEXT,
             school TEXT,
             grade TEXT,
-            type TEXT
+            type TEXT CHECK (type IN ("teacher","pupil","parent"))
         );""")
         
         await conn.execute("""CREATE TABLE IF NOT EXISTS UsersProgress (

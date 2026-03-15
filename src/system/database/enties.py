@@ -209,7 +209,8 @@ class UserProgressController:
     def achievements(self) -> list:
         try:
             return json.loads(str(self.progress_record.achievments))
-        except:
+        except (json.JSONDecodeError, AttributeError) as e:
+            logging.error(f"Failed to parse achievements: {e}")
             return []
 
     @property
