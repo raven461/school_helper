@@ -33,3 +33,10 @@ class SchoolTableRecord(BaseModel):
     base_schedule_url: str
     delta_schedule_url: str
     exams_urls: list[str]
+
+class AchievementTableRecord(BaseModel):
+    id: int
+    name: str
+    desc: str
+    exp: float
+    check_function: str

@@ -41,11 +41,20 @@ async def init_db():
             exams_urls TEXT DEFAULT '[]'
         );""")
         await conn.commit()
+    async with get_db_connection("databases/") as conn:
+        await conn.execute("""CREATE TABLE IF NOT EXISTS Achievements(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT DEFAULT 'Неизвестное достижение',
+            desc TEXT 'Описание отсутствует',               
+            exp REAL DEFAULT 0.0,
+            check_function TEXT
+        );""")
+        await conn.commit()
+
 
 async def del_db():
     async with get_db_connection() as conn:
         await conn.execute("DROP TABLE IF EXISTS Users;")
         await conn.execute("DROP TABLE IF EXISTS UsersProgress;")
         await conn.execute("DROP TABLE IF EXISTS UsersHomeWork;")
-        await conn.execute("DROP TABLE IF EXISTS Schools;")
         await conn.commit()

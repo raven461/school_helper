@@ -1,8 +1,9 @@
 from .connect import get_db_connection
-from .models import SchoolTableRecord, UserTableRecord, HomeworkTableRecord, ProgressTableRecord
+from .models import SchoolTableRecord, UserTableRecord, HomeworkTableRecord, ProgressTableRecord,AchievementTableRecord
 import json
 import time
 import logging
+import ast
 
 class UserController:
     def __init__(self, user_id):
@@ -243,7 +244,7 @@ class SchoolController:
         async with get_db_connection() as conn:
             await conn.execute(
                 "DELETE FROM Schools WHERE id = ?",
-                (id)
+                (id,)
             )
             await conn.commit()
 
@@ -269,3 +270,65 @@ class SchoolController:
         all_schools = await self.get_all_schools()
         matching_schools = [school for school in all_schools if school.name == name]
         return matching_schools[0] if matching_schools else None
+
+class AchievementsController:
+    def __init__(self):
+        pass
+    
+    async def get_all_ach(self) -> list[AchievementTableRecord]:
+        async with get_db_connection("achievements.db") as conn:
+            async with conn.execute("SELECT * FROM Achievements") as cursor:
+                row_ach = await cursor.fetchall()
+        ach = []
+        for record in row_ach:
+            ach.append(
+                AchievementTableRecord(
+                    id=int(record[0]),
+                    name=str(record[1]),
+                    desc=str(record[2]),
+                    exp=float(record[3]),
+                    check_function=str(record[4])
+                )
+            )
+        return ach
+
+    async def get_ach_by_name(self,name: str) -> AchievementTableRecord | None:
+        all_ach = await self.get_all_ach()
+        matching_schools = [ach for ach in all_ach if ach.name == name]
+        return matching_schools[0] if matching_schools else None
+    
+    async def get_ach_by_id(self,id: int) -> AchievementTableRecord | None:
+        all_ach = await self.get_all_ach()
+        matching_schools = [ach for ach in all_ach if ach.id == id]
+        return matching_schools[0] if matching_schools else None
+    
+    async def add_ach(self,name:str,desc:str,exp:float,check_function:str):
+        async with get_db_connection("achievements.db") as conn:
+            await conn.execute(
+                "INSERT INTO Achievements (name,desc,exp,check_function) VALUES (?, ?, ?, ?, ?)",
+                (name, desc, exp, check_function)
+            )
+            await conn.commit()
+
+    async def delete_ach(self,id:int):
+        async with get_db_connection("achievements.db") as conn:
+            await conn.execute(
+                "DELETE FROM Achievements WHERE id = ?",
+                (id,)
+            )
+            await conn.commit()
+
+    async def check_ach(self,id:int,user_id:int) -> list[AchievementTableRecord]| None:
+        prog = await UserProgressController.create(user_id)
+        hw = await UserHomeworkController.create(user_id)
+        current_ids = prog.achievements
+        new_unlocked = []
+        all_ach = await self.get_all_ach()
+        for ach in all_ach:
+            if ach.id not in current_ids:
+                if ast.parse(ach.check_function,mode = "eval")(prog, hw):
+                    new_unlocked.append(ach)
+                    reward = ach.exp
+                    if reward > 0:
+                        await prog.append_user_exp(reward)
+        return new_unlocked
