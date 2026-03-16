@@ -3,8 +3,8 @@ from aiogram.types import Message,CallbackQuery
 from aiogram.filters import Command
 from datetime import datetime
 from .keyboards.keyboards import get_dynamic_days_keyboard
-from system.database.enties import UserController
-from system.shedule_parser import ScheduleParser
+from system.database.entities import UserController
+from system.schedule_parser import ScheduleParser
 from system.exam_parser import ExamsParser
 import logging
 import asyncio
@@ -14,7 +14,8 @@ import re
 router = Router()
 
 async def update_data_task():
-    user = await UserController.create(message.from_user.id)
+    #TODO:сделать получение парсера по данным пользователя
+    user = await UserController.create(0)
     parser = await ScheduleParser.create(user.user_record.school_name)
     """Фоновая задача для обновления данных по расписанию каждую минуту"""
     while True:

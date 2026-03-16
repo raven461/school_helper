@@ -30,10 +30,14 @@ async def start_solve(message: types.Message, state: FSMContext):
 async def process_ask_ai(message: types.Message, state: FSMContext):
     async with ChatActionSender.typing(bot=message.bot, chat_id=message.chat.id):
         try:
-            answer = await ai.get_request_to_ai(await text_from_tg_photo(message.bot,message.photo[-1]) +
-                                                str(message.text))
-        except:
-            answer = str(await ai.get_request_to_ai(str(message.text)))
-        finally:
-            await message.answer(answer,parse_mode=ParseMode.MARKDOWN)
-    await state.clear()
+            if message.photo:
+                text = await text_from_tg_photo(message.bot, message.photo[-1])
+                text += str(message.text)
+            else:
+                text = message.text or ""
+            await message.answer(await ai.get_request_to_ai(text))
+        except (AttributeError, IndexError, TypeError) as e:
+            logging.error(f"Error processing message: {e}")
+            await message.answer("Не удалось обработать запрос. Попробуйте еще раз.")
+        finally: 
+            await state.clear()

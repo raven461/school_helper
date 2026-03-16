@@ -3,7 +3,7 @@ from aiogram.types import Message,CallbackQuery
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from system.database.enties import UserController
+from system.database.entities import UserController
 from .keyboards.keyboards import get_user_type_keyboard
 import logging
 

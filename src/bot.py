@@ -1,10 +1,10 @@
 import asyncio
 from aiogram import Bot, Dispatcher
-from conf.logging.file_opening import LOG_FILE_PATH, LOG_FILE_ENCODING
 from config import config
 import logging
+import datetime
 from system.database.connect import init_db
-from handlers import common,homework_handler,schedule_handler,ai_handler,dev_handler,achievments_handler
+from handlers import achievements_handler, common,homework_handler,schedule_handler,ai_handler,dev_handler
 async def main():
     await init_db()
     bot = Bot(token=config.bot_token.get_secret_value())
@@ -13,7 +13,7 @@ async def main():
                        ai_handler.router,
                        schedule_handler.router,
                        homework_handler.router,
-                       achievments_handler.router,
+                       achievements_handler.router,
                        dev_handler.router)
     await bot.delete_webhook(drop_pending_updates=True)
     background_task = asyncio.create_task(schedule_handler.update_data_task())
@@ -26,11 +26,12 @@ async def main():
         except asyncio.CancelledError:
             pass
 if __name__ == "__main__":
+    LOG_FILE_PATH = "./logs/log "+(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S"))+".log"
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         filename=LOG_FILE_PATH,
-        encoding = LOG_FILE_ENCODING
+        encoding = "utf-8"
     )
     logging.info("Bot started")
     logging.getLogger("aiogram").setLevel(logging.INFO)

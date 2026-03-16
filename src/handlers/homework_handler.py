@@ -2,7 +2,7 @@ from aiogram import Router, types, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from system.database.enties import UserHomeworkController,UserProgressController 
+from system.database.entities import UserHomeworkController,UserProgressController 
 from datetime import datetime
 import logging
 
@@ -74,8 +74,8 @@ async def enter_deadline_date(message: types.Message, state: FSMContext):
     user_homework = await UserHomeworkController.create(message.from_user.id)
     
     await user_homework.add_task(
-        subject_id=state_data.get("lesson"),
-        task_text=state_data.get("task_text"),
+        subject_id=str(state_data.get("lesson")),
+        task_text=str(state_data.get("task_text")),
         deadline_ts = int(deadline_date.timestamp())
     )
     
@@ -132,8 +132,8 @@ async def enter_text(message: types.Message, state: FSMContext):
         await user_homework.set_status_complete(id)
         await user_progress.append_right_tasks_quantity(1)
         await user_progress.append_user_exp(0.9)
-    except:
+        await message.answer("Готово")
+    except :
         await message.answer("Задание отсутствует")
     finally:
-        await message.answer("Готово")
         await state.clear()

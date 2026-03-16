@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from .keyboards.keyboards import get_admin_keyboard
 from config import config
-from conf.logging.file_opening import LOG_FILE_PATH
+from bot import LOG_FILE_PATH
 from system.database.connect import del_db
 
 router = Router()
