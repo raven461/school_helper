@@ -16,6 +16,7 @@ class ExamsParser:
         self.exams = [f"{halfyear}_polugodie_na_{year}-{year+1}_uchebnyj_god_srednij_uroven",
                       f"{halfyear}_polugodie_na_{year}-{year+1}_uchebnyj_god_osnovnaya_shkola",
                       f"{halfyear}_polugodie_na_{year}-{year+1}_uchebnyj_god_nachalnaya_shkola"]
+
     @classmethod
     async def create(cls, school_name):
         obj = cls(school_name)
@@ -24,6 +25,7 @@ class ExamsParser:
             logging.error(f"NoRecordError: in table Schools isn't school with name == {school_name}")
             return
         obj.main_url = obj.school.domain_url
+        return obj
 
     def returnFilename(self,user_class):
         if user_class < 5:
