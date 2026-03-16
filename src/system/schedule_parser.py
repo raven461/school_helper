@@ -10,7 +10,7 @@ import logging
 class ScheduleParser:
     def __init__(self, school_name: str):
         self.school_name = school_name
-        self.basic_url,self.delta_url,self.domain = ""
+        self.basic_url = self.delta_url = self.domain = ""
         self.exams = []
 
     @classmethod
