@@ -41,7 +41,7 @@ async def init_db():
             exams_urls TEXT DEFAULT '[]'
         );""")
         await conn.commit()
-    async with get_db_connection("databases/") as conn:
+    async with get_db_connection("achievements.db") as conn:
         await conn.execute("""CREATE TABLE IF NOT EXISTS Achievements(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT DEFAULT 'Неизвестное достижение',
