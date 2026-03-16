@@ -36,7 +36,7 @@ async def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             domain_url TEXT,               
-            schedule_url TEXT,
+            base_schedule_url TEXT,
             delta_schedule_url TEXT,
             exams_urls TEXT DEFAULT '[]'
         );""")
