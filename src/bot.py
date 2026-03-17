@@ -5,6 +5,10 @@ import logging
 import datetime
 from system.database.connect import init_db
 from handlers import achievements_handler, common,homework_handler,schedule_handler,ai_handler,dev_handler
+
+os.makedirs("./logs", exist_ok=True)
+LOG_FILE_PATH = "./logs/log " + datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") + ".log"
+
 async def main():
     await init_db()
     bot = Bot(token=config.bot_token.get_secret_value())
@@ -26,7 +30,6 @@ async def main():
         except asyncio.CancelledError:
             pass
 if __name__ == "__main__":
-    LOG_FILE_PATH = "./logs/log "+(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S"))+".log"
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
