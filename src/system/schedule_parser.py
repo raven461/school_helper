@@ -12,7 +12,7 @@ class ScheduleParser:
         self.school_name = school_name
         self.basic_url = self.delta_url = self.domain = ""
         self.exams = []
-
+        self.data, self.table_delta = None, None
     @classmethod
     async def create(cls, school_name: str):
         obj = cls(school_name)
