@@ -10,16 +10,28 @@ from system.database.connect import del_db
 
 router = Router()
 class dev_states(StatesGroup):
+    check_admin = State()
     get_bot_logs = State()
     get_server_info = State()
     drop_db = State()
     send_logs_archives = State()
     read_email = State()
 
-@router.message(Command("admin_mode"))
-async def admin_pannel(message: Message):
-    await message.answer("Команда подтверждена. для выхода нажмите /cancel", reply_markup=get_admin_keyboard())
-
+@router.message(Command("root"))
+async def admin_pannel(message: Message, state: FSMContext):
+    await message.answer("Введите ключ доступа")
+    await state.set_state(dev_states.check_admin)
+    
+@router.message(dev_states.check_admin)
+async def check_root(message: Message, state: FSMContext):
+    dev_key = message.text
+    if dev_key == config.dev_key.get_secret_value():
+        await message.answer("Команда подтверждена.\
+                            для выхода нажмите /cancel",
+                             reply_markup=get_admin_keyboard())
+        return
+    await message.answer("Неверный ключ доступа.")
+    
 @router.callback_query(F.data.startswith("logs"))
 async def logs(callback: CallbackQuery, state: FSMContext):
     await callback.answer("Введите ключ доступа")
