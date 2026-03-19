@@ -208,11 +208,7 @@ class UserProgressController:
 
     @property
     def achievements(self) -> list:
-        try:
-            return json.loads(str(self.progress_record.achievments))
-        except (json.JSONDecodeError, AttributeError) as e:
-            logging.error(f"Failed to parse achievements: {e}")
-            return []
+            return self.progress_record.achievments or []
 
     @property
     def exp(self) -> float:
@@ -232,11 +228,16 @@ class SchoolController:
     def __init__(self):
         pass
 
-    async def add_school(self, school_name: str, base_url: str, delta_url: str, exams_urls: list[str]):
+    async def add_school(self, school_name: str,domain:str ,base_url: str, delta_url: str, exams_urls: list[str]):
         async with get_db_connection() as conn:
             await conn.execute(
-                "INSERT INTO Schools (school_name, base_url, delta_url,exams) VALUES (?, ?, ?,?)",
-                (school_name, base_url, delta_url,json.dumps(exams_urls, ensure_ascii=False))
+                """INSERT INTO Schools (
+                    name,
+                    domain_url,
+                    base_schedule_url,
+                    delta_schedule_url,
+                    exams_urls) VALUES (?, ?, ?, ?, ?)""",
+                (school_name, domain, base_url, delta_url,json.dumps(exams_urls, ensure_ascii=False))
             )
             await conn.commit()
 
@@ -305,7 +306,7 @@ class AchievementsController:
     async def add_ach(self,name:str,desc:str,exp:float,check_function:str):
         async with get_db_connection("achievements.db") as conn:
             await conn.execute(
-                "INSERT INTO Achievements (name,desc,exp,check_function) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO Achievements (name,desc,exp,check_function) VALUES (?, ?, ?, ?)",
                 (name, desc, exp, check_function)
             )
             await conn.commit()
@@ -318,15 +319,15 @@ class AchievementsController:
             )
             await conn.commit()
 
-    async def check_ach(self,id:int,user_id:int) -> list[AchievementTableRecord]:
+    async def check_all_ach(self,user_id:int) -> list[AchievementTableRecord]:
         prog = await UserProgressController.create(user_id)
         hw = await UserHomeworkController.create(user_id)
         current_ids = prog.achievements
         new_unlocked = []
         all_ach = await self.get_all_ach()
         for ach in all_ach:
-            if ach.id not in current_ids:
-                if ast.parse(ach.check_function, mode = "eval")(prog, hw):
+            if str(ach.id) not in current_ids:
+                if eval(compile(ast.parse(ach.check_function, mode="eval"), "<string>", "eval"))(prog, hw):
                     new_unlocked.append(ach)
                     reward = ach.exp
                     if reward > 0:
