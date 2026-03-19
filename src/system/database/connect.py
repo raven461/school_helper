@@ -45,7 +45,7 @@ async def init_db():
         await conn.execute("""CREATE TABLE IF NOT EXISTS Achievements(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT DEFAULT 'Неизвестное достижение',
-            desc TEXT 'Описание отсутствует',               
+            desc TEXT DEFAULT 'Описание отсутствует',               
             exp REAL DEFAULT 0.0,
             check_function TEXT
         );""")
