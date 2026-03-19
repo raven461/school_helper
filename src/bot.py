@@ -5,7 +5,7 @@ import logging
 import datetime
 from system.database.connect import init_db
 from handlers import achievements_handler, common,homework_handler,schedule_handler,ai_handler,dev_handler
-
+import os
 os.makedirs("./logs", exist_ok=True)
 LOG_FILE_PATH = "./logs/log " + datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S") + ".log"
 
