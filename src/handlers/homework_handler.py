@@ -19,7 +19,7 @@ class HomeworkStates(StatesGroup):
     enter_text = State()
 
 async def deadline_notify(user_id,task_id):
-    user_homework = UserHomeworkController(user_id)
+    user_homework = await UserHomeworkController.create(user_id)
     task = list(filter(lambda elem: elem.id == task_id, user_homework.homework_records))[0]
     return f"Внимание, на выполнение задания по предмету '{task.subject}'\
                             осталось примерно {task.deadline_time // 60} минут.\
@@ -105,7 +105,7 @@ async def homework(message: types.Message):
 @router.message(Command("done"))
 async def done(message: types.Message, state: FSMContext):
     await message.answer("Введите текст задания или /cancel.\n")
-    await state.set_state(HomeworkStates.enter_text)
+    await state.set_state(HomeworkStates.enter_subject)
 
 @router.message(HomeworkStates.enter_subject)
 async def enter_subject(message: types.Message, state: FSMContext):
@@ -133,7 +133,7 @@ async def enter_text(message: types.Message, state: FSMContext):
         await user_progress.append_right_tasks_quantity(1)
         await user_progress.append_user_exp(0.9)
         await message.answer("Готово")
-    except :
+    except:
         await message.answer("Задание отсутствует")
     finally:
         await state.clear()

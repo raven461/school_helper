@@ -56,13 +56,15 @@ def format_schedule_view(day_name, user_class:str, schedule_dict, delta_list):
 @router.callback_query(F.data.startswith("day_"))
 async def handle_day(callback: CallbackQuery):
     user = await UserController.create(callback.from_user.id)
+    if not user.is_register():
+        await callback.answer("Сначала пройдите регистрацию /reg", show_alert=True)
+        return
     parser = await ScheduleParser.create(user.user_record.school_name)
     timestamp = time.time()
     if callback.data is None or callback.message is None:
         logging.error("Empty callback data")
         return
     selected_day = callback.data.split("_")[1]
-    user = await UserController.create(callback.from_user.id)
     grade = str(user.user_record.grade)
     
     if not grade:

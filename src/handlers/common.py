@@ -93,11 +93,8 @@ async def process_user_type(callback: CallbackQuery, state: FSMContext):
         grade=str(state_data.get("user_class")),
         user_type=type
     )
-    await callback.answer()
-    try:
-        await callback.message.edit_text("Готово")
-    except Exception:
-        pass
+    await state.clear()
+    await callback.answer("Готово")
 
 @router.message(Command("cancel"))
 async def cancel(message: Message, state: FSMContext):

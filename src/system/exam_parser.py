@@ -1,6 +1,6 @@
 import httpx
 import datetime
-from database.entities import SchoolController
+from system.database.entities import SchoolController
 from dateutil.relativedelta import relativedelta
 import logging
 
