@@ -324,12 +324,13 @@ class AchievementsController:
         hw = await UserHomeworkController.create(user_id)
         current_ids = prog.achievements
         new_unlocked = []
+        reward = 0
         all_ach = await self.get_all_ach()
         for ach in all_ach:
             if str(ach.id) not in current_ids:
                 if eval(compile(ast.parse(ach.check_function, mode="eval"), "<string>", "eval"))(prog, hw):
                     new_unlocked.append(ach)
-                    reward = ach.exp
-                    if reward > 0:
-                        await prog.append_user_exp(reward)
+                    reward += ach.exp
+        if reward > 0:
+            await prog.append_user_exp(reward)
         return new_unlocked
