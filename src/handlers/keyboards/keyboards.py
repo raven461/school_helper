@@ -3,16 +3,29 @@ from aiogram.types import InlineKeyboardButton
 from datetime import datetime
 
 def get_user_type_keyboard():
+    base_callback = "type_"
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(
             text="Ученик", 
-            callback_data="type_pupil"
+            callback_data=base_callback+"pupil"
         ))
     builder.add(InlineKeyboardButton(
             text="Учитель", 
-            callback_data="type_teacher"
+            callback_data=base_callback+"teacher"
         ))
     builder.adjust(1,1) 
+    return builder.as_markup()
+
+def get_lessons_keyboard():
+    base_callback = "lesson_"
+    builder = InlineKeyboardBuilder()
+    with open("../../../lessons.txt","r") as lessons_file:
+        lessons = str(lessons_file.readlines()).split(" ")
+        for i in lessons:
+            builder.add(InlineKeyboardButton(
+                text=i,
+                callback_data=base_callback+i
+            ))
     return builder.as_markup()
 
 def get_admin_keyboard():

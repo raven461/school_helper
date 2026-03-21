@@ -3,7 +3,7 @@ from aiogram.types import Message,CallbackQuery
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from system.database.entities import UserController
+from system.database.entities import UserController, SchoolController
 from .keyboards.keyboards import get_user_type_keyboard
 import logging
 
@@ -40,7 +40,8 @@ async def help_command(message: Message):
         "📝 <b>Домашние задания</b>\n"
         "/add_homework — добавить новое задание\n"
         "/homework — список всех заданий\n"
-        "/done — отметить задание выполненным\n\n"
+        "/done — отметить задание выполненным\n"
+        "/deadlines — посмотреть сроки выполнения заданий\n\n"
         "🏆 <b>Мотивация</b>\n"
         "/achievements — мои достижения\n"
         "/profile — мой профиль\n\n"
@@ -100,3 +101,11 @@ async def process_user_type(callback: CallbackQuery, state: FSMContext):
 async def cancel(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("Отменено.")
+
+@router.message(Command("read_schools"))
+async def read_schools(message: Message):
+    report = ""
+    schools = await SchoolController().get_all_schools()
+    for rec in schools:
+        report += rec.name + "\n"
+    await message.answer("Поддерживаемые школы: \n" + report)
